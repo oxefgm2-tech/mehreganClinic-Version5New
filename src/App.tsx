@@ -432,6 +432,26 @@ export default function App() {
     };
   }, [isAuthenticated, refreshAllServerData]);
 
+  // Fetch notifications periodically
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    const fetchNotifications = async () => {
+      try {
+        const serverNotifications = await apiClient.getNotifications();
+        if (!cancelled) setNotifications(serverNotifications);
+      } catch (err) {
+        console.warn('Could not fetch notifications:', err);
+      }
+    };
+    fetchNotifications();
+    const intervalId = window.setInterval(fetchNotifications, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isAuthenticated, currentUser.username]);
+
   // Check-in Pet in Clinic & sync with server
   const handleCheckInPet = (petId: string, status: Pet['statusInClinic']) => {
     setPets((prev) => {
@@ -1153,26 +1173,37 @@ export default function App() {
   };
 
   // Notification Collaborative Action
-  const handleUpdateNotificationAction = (
+  const handleUpdateNotificationAction = async (
     notifId: string,
     status: 'done_by_me' | 'done_by_other'
   ) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notifId
-          ? {
-              ...n,
-              actionStatus: status,
-              isRead: true,
-              actionTakenBy: currentUser.name,
-            }
-          : n
-      )
-    );
+    try {
+      await apiClient.updateNotificationAction(notifId, status, currentUser.name);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notifId
+            ? {
+                ...n,
+                actionStatus: status,
+                isRead: true,
+                actionTakenBy: status === 'done_by_me' ? currentUser.name : n.actionTakenBy,
+              }
+            : n
+        )
+      );
+    } catch (err) {
+      console.error('Update notification action failed:', err);
+    }
   };
 
-  const handleMarkAllNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const handleMarkAllNotificationsAsRead = async () => {
+    try {
+      const unread = notifications.filter((n) => !n.isRead);
+      await Promise.all(unread.map((n) => apiClient.markNotificationRead(n.id)));
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Mark all notifications read failed:', err);
+    }
   };
 
   // Stats calculation for Navbar & Sidebar

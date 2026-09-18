@@ -33,6 +33,11 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // Filter notifications by targetRole on client side as well
+  const filteredNotifications = notifications.filter((n) =>
+    n.targetRole === 'all' || n.targetRole === currentUserRole
+  );
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       <div
@@ -69,7 +74,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
 
           {/* Action Bar */}
           <div className="px-4 py-2 bg-[#F7F8F3] border-b border-[#E6E9DF] flex items-center justify-between text-xs">
-            <span className="text-[#5C7457] font-medium">{notifications.length} پیام دریافت شده</span>
+            <span className="text-[#5C7457] font-medium">{filteredNotifications.length} پیام دریافت شده</span>
             <button
               onClick={onMarkAllAsRead}
               className="text-[#4A6741] hover:text-[#3D5535] font-bold cursor-pointer"
@@ -80,7 +85,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
 
           {/* List of Notifications */}
           <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-white">
-            {notifications.map((notif) => {
+            {filteredNotifications.map((notif) => {
               const isActionPending = notif.requiresAction && notif.actionStatus === 'pending';
               const isDoneByMe = notif.actionStatus === 'done_by_me';
               const isDoneByOther = notif.actionStatus === 'done_by_other';

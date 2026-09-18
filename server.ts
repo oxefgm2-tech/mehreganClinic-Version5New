@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { Pool } from 'pg';
 import { randomUUID, createHash } from 'crypto';
+import { initialNotifications } from './src/data/mockDatabase';
 
 dotenv.config();
 
@@ -315,6 +316,7 @@ interface PersistentClinicStore {
   accessMatrix: any;
   syncQueue: any[];
   tasks: any[];
+  notifications: any[];
 }
 
 const defaultClinicStore: PersistentClinicStore = {
@@ -350,6 +352,7 @@ const defaultClinicStore: PersistentClinicStore = {
   accessMatrix: null,
   syncQueue: [],
   tasks: [],
+  notifications: [],
 };
 
 let store: PersistentClinicStore = { ...defaultClinicStore };
@@ -613,6 +616,7 @@ if (fs.existsSync(CLINIC_STORE_FILE)) {
     saveStore();
   }
 } else {
+  store.notifications = initialNotifications;
   saveStore();
 }
 
@@ -620,7 +624,7 @@ if (fs.existsSync(CLINIC_STORE_FILE)) {
 const arrayKeys: (keyof PersistentClinicStore)[] = [
   'patients', 'owners', 'visits', 'vaccinations', 'appointments', 'queues', 'invoices',
   'boarding', 'attendance', 'products', 'productMovements', 'accountingDocuments', 'suppliers', 'loyaltyMembers',
-  'surgerySessions', 'groomingStyles', 'groomingPortfolio', 'syncQueue'
+  'surgerySessions', 'groomingStyles', 'groomingPortfolio', 'syncQueue', 'notifications'
 ];
 for (const key of arrayKeys) {
   if (!Array.isArray(store[key])) {
@@ -1926,6 +1930,74 @@ app.patch('/api/tasks/:id', (req: Request, res: Response) => {
   });
   saveStore();
   return uniformResponse(res, 200, { success: true, data: task });
+});
+
+// Notifications API
+app.get('/api/notifications', (req: Request, res: Response) => {
+  const user = sessionUser(req);
+  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+  const data = store.notifications.filter((n) =>
+    n.targetRole === 'all' || n.targetRole === user.role
+  );
+  return uniformResponse(res, 200, { success: true, count: data.length, data });
+});
+
+app.post('/api/notifications', (req: Request, res: Response) => {
+  const user = sessionUser(req);
+  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+  const notif = req.body;
+  if (!notif?.title || !notif?.message || !notif?.type) {
+    return uniformResponse(res, 400, { success: false, error: 'عنوان، پیام و نوع الزامی است.' });
+  }
+  const saved = {
+    id: notif.id || `notif-${Date.now()}`,
+    title: notif.title,
+    message: notif.message,
+    type: notif.type,
+    targetRole: notif.targetRole || 'all',
+    createdAt: new Date().toISOString(),
+    isRead: false,
+    requiresAction: notif.requiresAction || false,
+    actionStatus: notif.requiresAction ? 'pending' : undefined,
+    actionTakenBy: undefined,
+    relatedEntityId: notif.relatedEntityId,
+  };
+  if (!store.notifications) store.notifications = [];
+  store.notifications.unshift(saved);
+  saveStore();
+  return uniformResponse(res, 201, { success: true, data: saved });
+});
+
+app.patch('/api/notifications/:id/read', (req: Request, res: Response) => {
+  const user = sessionUser(req);
+  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+  const notif = store.notifications.find((n) => n.id === req.params.id);
+  if (!notif) return uniformResponse(res, 404, { success: false, error: 'اعلان یافت نشد.' });
+  if (notif.targetRole !== 'all' && notif.targetRole !== user.role) {
+    return uniformResponse(res, 403, { success: false, error: 'دسترسی به این اعلان ندارید.' });
+  }
+  notif.isRead = true;
+  saveStore();
+  return uniformResponse(res, 200, { success: true, data: notif });
+});
+
+app.patch('/api/notifications/:id/action', (req: Request, res: Response) => {
+  const user = sessionUser(req);
+  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+  const notif = store.notifications.find((n) => n.id === req.params.id);
+  if (!notif) return uniformResponse(res, 404, { success: false, error: 'اعلان یافت نشد.' });
+  if (notif.targetRole !== 'all' && notif.targetRole !== user.role) {
+    return uniformResponse(res, 403, { success: false, error: 'دسترسی به این اعلان ندارید.' });
+  }
+  const action = req.body?.action;
+  if (!['done_by_me', 'done_by_other'].includes(action)) {
+    return uniformResponse(res, 400, { success: false, error: 'اقدام نامعتبر است.' });
+  }
+  notif.actionStatus = action;
+  notif.actionTakenBy = action === 'done_by_me' ? user.name : req.body?.actionTakenBy;
+  notif.isRead = true;
+  saveStore();
+  return uniformResponse(res, 200, { success: true, data: notif });
 });
 
 // Clinic Profile Configuration

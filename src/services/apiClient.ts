@@ -168,6 +168,31 @@ export const apiClient = {
     return data.user;
   },
 
+  async getNotifications(): Promise<any[]> {
+    const res = await clinicFetch('/api/notifications');
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'اعلان‌ها دریافت نشدند.');
+    return data.data || [];
+  },
+
+  async markNotificationRead(notificationId: string): Promise<any> {
+    const res = await clinicFetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'اعلام خوانده شده ناموفق بود.');
+    return data.data;
+  },
+
+  async updateNotificationAction(notificationId: string, action: 'done_by_me' | 'done_by_other', actionTakenBy?: string): Promise<any> {
+    const res = await clinicFetch(`/api/notifications/${notificationId}/action`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, actionTakenBy }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'به‌روزرسانی اقدام ناموفق بود.');
+    return data.data;
+  },
+
   async getTasks(username?: string): Promise<any[]> {
     const query = username ? `?username=${encodeURIComponent(username)}` : '';
     const res = await clinicFetch(`/api/tasks${query}`);
