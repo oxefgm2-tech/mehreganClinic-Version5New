@@ -1305,6 +1305,7 @@ export default function App() {
               onUpdateOperations={handleUpdateSurgerySessions}
               emergencyProtocols={initialSurgeryEmergencyProtocols}
               onDirectRecordVisit={(visitData, cost) => handleRecordVisit(visitData, cost)}
+              userRole={currentUser.role}
             />
           )}
 

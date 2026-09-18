@@ -43,6 +43,7 @@ interface SurgerySuiteTabProps {
   onDirectRecordVisit?: (visitData: any, cost: number) => void;
   pets?: Pet[];
   owners?: Owner[];
+  userRole?: string;
 }
 
 export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
@@ -52,9 +53,11 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
   onUpdateOperations,
   pets = [],
   owners = [],
+  userRole = 'veterinarian',
 }) => {
   const sessions = propSessions || propOperations || [];
   const handleUpdate = onUpdateSessions || onUpdateOperations || (() => {});
+  const canToggleEmergency = userRole === 'senior_veterinarian' || userRole === 'admin';
   const [activeSubView, setActiveSubView] = useState<'active_or' | 'morning_queue' | 'history'>('active_or');
   const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id || '');
   const activeSession = sessions.find((s) => s.id === selectedSessionId) || sessions[0];
@@ -150,6 +153,7 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
   };
 
   const handleToggleEmergency = () => {
+    if (!canToggleEmergency) return;
     const nextState = !emergencyAlertActive;
     setEmergencyAlertActive(nextState);
     if (activeSession) {
@@ -232,12 +236,19 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleToggleEmergency}
-              className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl"
-            >
-              خروج از وضعیت بحران
-            </button>
+            {canToggleEmergency && (
+              <button
+                onClick={handleToggleEmergency}
+                className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl"
+              >
+                خروج از وضعیت بحران
+              </button>
+            )}
+            {!canToggleEmergency && (
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-4 py-2 rounded-xl">
+                تنها مدیر ارشد/ادمین می‌تواند وضعیت را تغییر دهد
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
@@ -281,13 +292,20 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleToggleEmergency}
-                    className="bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all"
-                  >
-                    <AlertOctagon className="w-3.5 h-3.5" />
-                    پروتکل فورس‌ماژور
-                  </button>
+                  {canToggleEmergency ? (
+                    <button
+                      onClick={handleToggleEmergency}
+                      className="bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all"
+                    >
+                      <AlertOctagon className="w-3.5 h-3.5" />
+                      پروتکل فورس‌ماژور
+                    </button>
+                  ) : (
+                    <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1">
+                      <AlertOctagon className="w-3.5 h-3.5" />
+                      فقط مدیر ارشد/ادمین
+                    </span>
+                  )}
                   <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-xl">
                     در حال جراحی (شروع: {activeSession.startTime})
                   </span>
