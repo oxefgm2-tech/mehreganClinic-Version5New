@@ -42,6 +42,21 @@ export type TabId =
   | 'cloud_migration'
   | 'owner_portal';
 
+export const HIDDEN_TABS: ReadonlySet<TabId> = new Set<TabId>([
+  'surgery_suite',
+  'grooming_suite',
+  'pet_shop',
+  'it_dev_ide',
+  'boarding',
+  'cashier',
+  'attendance',
+  'visitor_camera',
+  'print_templates',
+  'ai_vet_assistant',
+  'dvr_cctv',
+  'cloud_migration',
+]);
+
 interface SidebarProps {
   activeTab: TabId;
   onSelectTab: (tab: TabId) => void;
@@ -61,20 +76,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   // Keep the first operational release focused on stable clinic workflows.
   // Experimental suites remain in the codebase but are not exposed to users.
-  const hiddenUntilReady = new Set<TabId>([
-    'surgery_suite',
-    'grooming_suite',
-    'pet_shop',
-    'it_dev_ide',
-    'boarding',
-    'cashier',
-    'attendance',
-    'visitor_camera',
-    'print_templates',
-    'ai_vet_assistant',
-    'dvr_cctv',
-    'cloud_migration',
-  ]);
   const menuItems = [
     {
       id: 'dashboard' as TabId,
@@ -199,7 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   // Filter based on active role
-  const filteredItems = menuItems.filter(item => item.roles.includes(userRole) && !hiddenUntilReady.has(item.id));
+  const filteredItems = menuItems.filter(item => item.roles.includes(userRole) && !HIDDEN_TABS.has(item.id));
 
   return (
     <aside id="app-sidebar" className="w-64 bg-[#4A6741] text-white border-l border-[#3D5535] flex flex-col shrink-0 min-h-[calc(100vh-4rem)]">

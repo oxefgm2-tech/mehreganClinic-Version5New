@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './components/Navbar';
-import { Sidebar, TabId } from './components/Sidebar';
+import { Sidebar, TabId, HIDDEN_TABS } from './components/Sidebar';
 import { VoiceSecretaryModal } from './components/VoiceSecretaryModal';
 import { VisitorCameraModal } from './components/VisitorCameraModal';
 import { NotificationsDrawer } from './components/NotificationsDrawer';
@@ -1330,7 +1330,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'surgery_suite' && (
+          {activeTab === 'surgery_suite' && !HIDDEN_TABS.has('surgery_suite') && (
             <SurgerySuiteTab
               operations={surgerySessions}
               onUpdateOperations={handleUpdateSurgerySessions}
@@ -1340,7 +1340,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'grooming_suite' && (
+          {activeTab === 'grooming_suite' && !HIDDEN_TABS.has('grooming_suite') && (
             <GroomingSuiteTab
               styles={groomingStyles}
               onUpdateStyles={handleUpdateGroomingStyles}
@@ -1388,7 +1388,7 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'pet_shop' && (
+          {activeTab === 'pet_shop' && !HIDDEN_TABS.has('pet_shop') && (
             <PetShopMdiTab
               products={products}
               onUpdateProducts={handleUpdateProducts}
@@ -1453,7 +1453,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'it_dev_ide' && (
+          {activeTab === 'it_dev_ide' && !HIDDEN_TABS.has('it_dev_ide') && (
             <ItDeveloperIdeTab
               files={devFiles}
               logs={devLogs}
@@ -1498,7 +1498,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'boarding' && (
+          {activeTab === 'boarding' && !HIDDEN_TABS.has('boarding') && (
             <BoardingTab
               boardingRecords={boardingRecords}
               pets={pets}
@@ -1508,7 +1508,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'cashier' && (
+          {activeTab === 'cashier' && !HIDDEN_TABS.has('cashier') && (
             <CashierFinanceTab
               invoices={invoices}
               onUpdateInvoicePayment={handleUpdateInvoicePayment}
@@ -1517,7 +1517,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'attendance' && (
+          {activeTab === 'attendance' && !HIDDEN_TABS.has('attendance') && (
             <AttendanceTab
               attendanceRecords={attendanceRecords}
               onClockIn={handleClockIn}
@@ -1525,7 +1525,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'visitor_camera' && (
+          {activeTab === 'visitor_camera' && !HIDDEN_TABS.has('visitor_camera') && (
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-[28px] border border-[#E6E9DF] shadow-xs flex items-center justify-between">
                 <div>
@@ -1561,7 +1561,7 @@ export default function App() {
             </div>
           )}
 
-          {activeTab === 'print_templates' && (
+          {activeTab === 'print_templates' && !HIDDEN_TABS.has('print_templates') && (
             <PrintTemplatesTab
               templates={printTemplates}
               pets={pets}
@@ -1571,11 +1571,11 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'ai_vet_assistant' && <AiVetAssistantTab pets={pets} />}
+          {activeTab === 'ai_vet_assistant' && !HIDDEN_TABS.has('ai_vet_assistant') && <AiVetAssistantTab pets={pets} />}
 
-          {activeTab === 'dvr_cctv' && <DvrCctvTab />}
+          {activeTab === 'dvr_cctv' && !HIDDEN_TABS.has('dvr_cctv') && <DvrCctvTab />}
 
-          {activeTab === 'cloud_migration' && (
+          {activeTab === 'cloud_migration' && !HIDDEN_TABS.has('cloud_migration') && (
             <CloudSyncMigrationTab
               syncQueue={syncQueue}
               pets={pets}
