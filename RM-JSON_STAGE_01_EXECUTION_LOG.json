@@ -1,0 +1,55 @@
+{
+  "stage": "RM-JSON_STAGE_01_TOKEN_OPTIMIZATION",
+  "captured_at": "2026-09-17T00:00:00+03:30",
+  "task": "T01-baseline",
+  "status": "done",
+  "workspace": "Z:\\Projects\\mehreganClinic\\Version5New",
+  "baseline": {
+    "plan_artifact_bytes": 21735,
+    "handoff_artifact_bytes": 3891,
+    "repository_file_listing_lines_including_dependencies": 16427,
+    "direct_model_token_counter_available": false,
+    "token_baseline_status": "not directly observable from workspace shell",
+    "estimation_method": [
+      "اندازهٔ artifactها",
+      "تعداد فراخوانی ابزارها",
+      "طول گزارش‌های بین مراحل",
+      "تعداد عملیات تکراری مانند build/deploy",
+      "مقایسهٔ قبل و بعد از اجرای همین مرحله"
+    ]
+  },
+  "evidence": [
+    "RM-JSON_STAGE_01_TOKEN_OPTIMIZATION.json با ساختار معتبر و ۱۰ تسک ایجاد شد.",
+    "lint و build در چرخهٔ قبلی موفق بودند.",
+    "health، HTTPS و smoke test API در چرخهٔ قبلی موفق بودند.",
+    "credentialها و دادهٔ خام درمانی وارد این گزارش نشده‌اند."
+  ],
+  "limitations": [
+    "این خط مبنا سنجهٔ تقریبی فرایندی است و عدد billing-token واقعی در محیط کار در دسترس نیست.",
+    "عدد دقیق صرفه‌جویی پس از اجرای T04 تا T10 و با مقایسهٔ گزارش‌های قبل/بعد محاسبه می‌شود."
+  ],
+  "completed_tasks": ["T01-baseline", "T02-history", "T03-context-contract", "T04-reporting", "T05-tool-discipline", "T06-implementation-gates", "T07-deployment-discipline", "T08-data-safety", "T09-stage-artifact", "T10-token-review"],
+  "artifacts": ["RM-JSON_STAGE_01_TOKEN_OPTIMIZATION.json", "PROJECT_CONTEXT_COMPACT.md", "RM-JSON_EXECUTION_PROTOCOL.md", "scripts/validateRmStage.mjs", "scripts/productionSmoke.mjs", "scripts/checkStageSafety.mjs"],
+  "tests": ["npm run rm:validate", "npm run production:smoke", "npm run rm:safety", "npm run lint", "npm run build"],
+  "token_review": {
+    "status": "completed_with_measurement_limit",
+    "exact_model_token_delta_available": false,
+    "proxy_bytes": {
+      "plan": 21735,
+      "compact_context": 3774,
+      "execution_protocol": 2462,
+      "execution_log": 2142,
+      "tracked_artifacts_total": 30113
+    },
+    "observed_optimization": [
+      "زمینهٔ فشرده برای جلوگیری از بازخوانی تاریخچه ایجاد شد.",
+      "گزارش‌ها به قالب پنج‌بخشی محدود شدند.",
+      "validator، smoke و safety scan قابل اجرای مجدد شدند.",
+      "تست‌های مستقل در یک اجرای موازی انجام شدند."
+    ],
+    "numeric_savings_claim": "قابل ادعا نیست؛ telemetry مستقیم توکن در محیط موجود نیست.",
+    "next_measurement": "در دو مرحلهٔ بعدی تعداد ابزارخوانی، طول گزارش و عملیات تکراری با همین log مقایسه شود."
+  },
+  "stage_status": "complete_with_measurement_limit",
+  "human_review_required": false
+}

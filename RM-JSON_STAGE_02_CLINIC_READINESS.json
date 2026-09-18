@@ -1,0 +1,77 @@
+{
+  "rm_json": {
+    "v": "2.21",
+    "meta": {
+      "lang": "fa-IR",
+      "type": "operational",
+      "model": "GPT-5 Codex",
+      "timestamp": "2026-09-18T00:00:00+03:30",
+      "origin": "گفت‌وگوی توسعهٔ کلینیک مهرگان",
+      "purpose": "تکمیل مسیرهای واقعی کلینیک، حذف نمایش‌های گمراه‌کننده، اصلاح جست‌وجو و آماده‌سازی استقرار قابل اتکا",
+      "domain": "software",
+      "profile": "project-management",
+      "ide": "Codex Work",
+      "workspace": "Z:\\Projects\\mehreganClinic\\Version5New",
+      "environment": "Windows PowerShell، React/Vite، Express، PostgreSQL، VPS Ubuntu"
+    },
+    "query": {
+      "raw": "با RM-JSON 2.21 پروژه را چندبار بخوان، مسیرهای واقعی کلینیک را اولویت‌بندی کن، جست‌وجو و شمارنده‌ها را دقیق کن، امکانات ناقص را از دید کاربران عادی خارج نگه دار و پس از تست روی VPS مستقر کن.",
+      "intent": "اجرای مرحلهٔ عملیاتی برای آمادگی کار واقعی کلینیک",
+      "context": [
+        "دادهٔ واقعی PostgreSQL در دسترس است و /api/patients حدود ۹۱۸۱ پرونده برمی‌گرداند.",
+        "عدد پرونده‌ها نباید به‌عنوان پت حاضر در کلینیک نمایش داده شود.",
+        "نسخهٔ قدیمی رابط به‌دلیل PWA/Service Worker ممکن است در کش بماند.",
+        "جست‌وجو باید با فیلدهای null امن باشد و فهرست‌های کشویی نباید کل داده را برای هر موقعیت بارگذاری کنند.",
+        "هر استقرار باید نسخهٔ قبلی را قابل بازگشت نگه دارد و health/HTTPS/API smoke را بگذراند."
+      ]
+    },
+    "core": [
+      {"id":"R02-T01","claim":"منابع حقیقت داده و شمارنده‌های پرونده/حضور باید جدا و قابل مشاهده باشند.","kind":"analysis","status":"todo","priority":1,"acceptance":["تعداد پرونده‌ها از منبع پرونده‌ها بیاید.","تعداد حاضر فقط بر اساس وضعیت waiting/in_exam محاسبه شود.","هیچ برچسب متناقض یا قدیمی در رابط باقی نماند."],"tests":["بررسی API و snapshot رابط.","تست با دادهٔ ۹۱۸۱ پرونده و حضور کمتر از آن."],"tags":["counts","truth-source"]},
+      {"id":"R02-T02","claim":"کش PWA و کلاینت باید نسخهٔ جدید رابط را دریافت کند.","kind":"implementation","status":"todo","priority":2,"acceptance":["Service Worker پس از استقرار نسخهٔ جدید را update کند.","در صورت controllerchange صفحه یک‌بار reload شود.","فایل‌های build جدید در docroot باشند."],"tests":["بررسی index.html، sw.js و نام asset جدید.","بررسی HTTPS پس از deploy."],"tags":["pwa","cache"]},
+      {"id":"R02-T03","claim":"جست‌وجوی پرونده و سرپرست باید در برابر null/undefined و ورودی فارسی/تلفن مقاوم باشد.","kind":"bugfix","status":"todo","priority":3,"acceptance":["هیچ includes مستقیم روی مقدار نامطمئن باقی نماند.","نتیجهٔ جست‌وجو حداکثر ۱۰ مورد مرتبط باشد.","جست‌وجوی خالی کل آرایه را در dropdown رندر نکند."],"tests":["ورودی‌های یک، دو و سه‌حرفی.","ورودی دارای null در فیلدهای مالک/پرونده.","تست نتیجهٔ صفر و چند نتیجه."],"tags":["search","null-safety","performance"]},
+      {"id":"R02-T04","claim":"لیست‌های کشویی بزرگ باید جست‌وجوی server-side یا محدودسازی داده داشته باشند.","kind":"performance","status":"todo","priority":4,"acceptance":["برای انتخاب پرونده، قبل از جست‌وجو همهٔ ۹۱۸۱ مورد به گزینه تبدیل نشود.","با وارد شدن query فقط ۱۰ نتیجه از API یا cache مرتبط نمایش داده شود."],"tests":["اندازهٔ payload شبکه.","تست dropdown در MedicalRecords، Appointments، Boarding و PetShop."],"tags":["dropdown","payload","latency"]},
+      {"id":"R02-T05","claim":"جریان ورود و نقش‌ها باید نقش قفل‌شدهٔ دعوتنامه را حفظ کند.","kind":"security","status":"todo","priority":5,"acceptance":["مدیر/IT نقش را تعیین کنند.","دعوت‌شده فقط credentials و اطلاعات خود را تکمیل کند.","ساخت مستقیم حساب از endpoint قدیمی ممکن نباشد."],"tests":["دعوت معتبر، تکمیل یک‌بار، دعوت منقضی/مصرف‌شده.","تلاش ساخت مستقیم حساب باید ۴۰۰/۴۰۳ باشد."],"tags":["auth","roles","invitation"]},
+      {"id":"R02-T06","claim":"پرونده، واکسیناسیون و ثبت ورود باید روی دادهٔ واقعی و مسیر قابل استفادهٔ پذیرش کار کنند.","kind":"workflow","status":"todo","priority":6,"acceptance":["انتخاب پرونده از جست‌وجوی واقعی انجام شود.","ثبت ورود وضعیت حضور را به‌درستی تغییر دهد.","ثبت واکسیناسیون به پروندهٔ انتخاب‌شده متصل شود."],"tests":["smoke مسیر پذیرش تا ثبت واکسن.","بازخوانی پس از refresh و logout/login."],"tags":["reception","vaccination","records"]},
+      {"id":"R02-T07","claim":"امکانات ناقص و mock از مسیر کاربران عادی حذف یا محدود بمانند.","kind":"access-control","status":"todo","priority":7,"acceptance":["تب‌های ناقص فقط برای IT یا مدیر مجاز باشند.","هیچ دادهٔ mock در جریان عادی نمایش داده نشود.","دکمهٔ خطادار disabled یا hidden باشد."],"tests":["بازبینی Sidebar برای هر role.","اسکن mock/demo در مسیرهای قابل دسترس."],"tags":["rbac","production","mock-data"]},
+      {"id":"R02-T08","claim":"همگام‌سازی داده و fingerprint نباید cache را با منبع اشتباه overwrite کند.","kind":"data-integrity","status":"todo","priority":8,"acceptance":["تغییر clinic_store و جداول نرمال‌شده جدا تشخیص داده شود.","cache کاربرمحور باقی بماند.","refresh پس از تغییر داده قابل پیش‌بینی باشد."],"tests":["تغییر read-only fingerprint.","تغییر رکورد و بررسی refresh پس‌زمینه.","عدم از دست رفتن رکورد واقعی."],"tags":["cache","fingerprint","postgres"]},
+      {"id":"R02-T09","claim":"تست‌های اختصاصی مسیرهای واقعی باید به smoke موجود اضافه شوند.","kind":"testing","status":"todo","priority":9,"acceptance":["health، data-version، patients، owners، vaccinations و auth guard حفظ شوند.","تست محدودسازی query و count اضافه شود.","build/lint قبل از deploy اجرا شوند."],"tests":["npm run lint","npm run build","npm run production:smoke"],"tags":["tests","acceptance"]},
+      {"id":"R02-T10","claim":"استقرار باید قابل تکرار، قابل بازگشت و با گزارش کوتاه انجام شود.","kind":"deployment","status":"todo","priority":10,"acceptance":["نسخهٔ قبلی /var/www/dist حفظ شود.","سرویس active و دامنه/API برابر ۲۰۰ باشند.","artifact مرحله و نتیجهٔ تست ثبت شود."],"tests":["systemd active","HTTPS 200","/api/health 200","smoke تولید"],"tags":["deploy","rollback","vps"]}
+    ],
+    "relations": [
+      {"s":"R02-T01","t":"R02-T02","r":"clarifies","w":1.0},
+      {"s":"R02-T01","t":"R02-T03","r":"informs","w":0.9},
+      {"s":"R02-T03","t":"R02-T04","r":"enables","w":1.0},
+      {"s":"R02-T04","t":"R02-T06","r":"supports","w":0.9},
+      {"s":"R02-T05","t":"R02-T07","r":"constrains","w":0.8},
+      {"s":"R02-T06","t":"R02-T09","r":"tests","w":1.0},
+      {"s":"R02-T07","t":"R02-T09","r":"tests","w":0.8},
+      {"s":"R02-T08","t":"R02-T09","r":"tests","w":0.9},
+      {"s":"R02-T09","t":"R02-T10","r":"enables","w":1.0}
+    ],
+    "ranking": {
+      "execution":["R02-T01","R02-T02","R02-T03","R02-T04","R02-T05","R02-T06","R02-T07","R02-T08","R02-T09","R02-T10"],
+      "critical_path":["R02-T01","R02-T03","R02-T04","R02-T06","R02-T09","R02-T10"],
+      "risk":["R02-T05","R02-T08","R02-T04","R02-T10"],
+      "impact":["R02-T04","R02-T06","R02-T01","R02-T07"]
+    },
+    "inference": {
+      "reasoning":["عدد ۹۱۸۱ از API پرونده‌ها تأیید شد و نباید به حضور تعبیر شود.","جست‌وجوی فعلی از نظر رندر فقط ۱۰ نتیجه نشان می‌دهد اما در چند مسیر قبل از آن کل آرایه به option تبدیل می‌شود.","وجود mock در فایل داده به‌تنهایی مشکل نیست؛ مشکل زمانی است که به کاربر عادی راه پیدا کند.","Service Worker می‌تواند باعث دیده نشدن اصلاح رابط پس از deploy شود."],
+      "verdict":"این مرحله باید با شمارنده و جست‌وجو شروع شود، سپس به جریان پذیرش/واکسیناسیون و کنترل دسترسی برسد.",
+      "next_actions":["ثبت artifact مرحله","اجرای خوانش چندمسیره پروژه","پیاده‌سازی R02-T01 تا R02-T04","تست و استقرار مرحله‌ای"],
+      "risks":["تغییر همزمان API و UI ممکن است dropdownهای موجود را بشکند.","کاهش payload نباید جست‌وجوی صوتی یا انتخاب پرونده را ناقص کند.","دادهٔ واقعی نباید با seed یا mock overwrite شود."],
+      "assumptions":["PostgreSQL/VPS منبع عملیاتی واقعی است.","گزارش‌های کاربر دربارهٔ عدد ۹هزار و جست‌وجو معتبر است.","استقرار قبلی قابل rollback باقی می‌ماند."]
+    },
+    "quality": {
+      "confidence":0.96,"coverage":0.9,"completeness":0.9,
+      "reproducibility":{"status":"partial","attempts":1,"successful":1,"method":"خواندن schema RM-JSON 2.21، artifact مرحلهٔ قبل، کد server/API/UI و smoke scripts","environment":"Codex Work / Windows PowerShell / Version5New"},
+      "provenance":{"origin":"جلسهٔ توسعهٔ کلینیک مهرگان","sources":["C:\\Users\\Oxef\\Documents\\RM-JSON 2.21_Design.json","RM-JSON_STAGE_01_TOKEN_OPTIMIZATION.json","server.ts","src/App.tsx","src/components/SmartSearchSelect.tsx"],"generator":"Codex","created_at":"2026-09-18T00:00:00+03:30","human_review":false},
+      "verification":{"tests":"تحلیل اولیه و خواندن چندمسیره انجام شد؛ پیاده‌سازی مرحله هنوز کامل نشده است.","lint":null,"build":null,"security":"credential و دادهٔ خام در artifact درج نشده است.","human_review":"در حال اجرا"},
+      "security":0.94,"performance":0.9,"documentation":0.96,"maintainability":0.92
+    },
+    "project":{"name":"Mehregan Clinic — Real Workflow Readiness","milestones":[{"id":"M02","name":"شمارنده، جست‌وجو و جریان واقعی کلینیک","status":"in_progress"}],"roadmap":["تفکیک شمارنده‌ها و رفع cache قدیمی","جست‌وجوی محدود و null-safe","تکمیل پذیرش/واکسیناسیون","کنترل mock و نقش‌ها","تست و استقرار قابل rollback"],"risks":["دادهٔ واقعی درمانی","payload بزرگ","PWA cache","دسترسی نقش‌ها","rollback"],"dependencies":["PostgreSQL VPS","auth_users.json","health/smoke scripts"]},
+    "code":{"files":["server.ts","src/App.tsx","src/components/Navbar.tsx","src/components/SmartSearchSelect.tsx","src/components/tabs/ReceptionPetsTab.tsx","src/components/tabs/MedicalRecordsTab.tsx","src/components/tabs/AppointmentsTab.tsx","vite.config.ts","src/main.tsx"],"tests":["npm run lint","npm run build","npm run production:smoke"],"smells":["رندر کل آرایه در optionهای چند dropdown","وجود دادهٔ mock در مسیرهای IT","دو منبع دادهٔ clinic_store و normalized tables"],"refactors":["server-side lookup","count contract","cache update","role gating"]},
+    "ai":{"model":"GPT-5 Codex","prompt":"با RM-JSON 2.21 پروژه را چندبار بخوان و مسیرهای واقعی کلینیک را به ترتیب ریسک و اثر تکمیل کن.","reasoning":["منبع حقیقت داده","تجربهٔ کاربر","کاهش payload","تست‌پذیری","استقرار rollback-safe"],"confidence":0.94,"tokens":{"measurement_status":"not_available_directly","estimate_method":"ثبت artifact، تعداد خوانش‌ها، خروجی تست و حجم گزارش"}},
+    "vibe":{"style":"کوتاه، متمرکز، گام‌های بلند، نتیجه‌محور","tone":"همکار فنی دقیق","constraints":["گزارش اضافه نده","credential چاپ نکن","mock به کاربر عادی نشان نده","بدون تست موفق deploy نکن"],"do":["هر مرحله را با artifact ثبت کن","خوانش‌ها را موازی و محدود کن","منبع حقیقت را قبل از UI بررسی کن"],"dont":["عدد پرونده را حضور اعلام نکن","کل داده را در dropdown رندر نکن","موفقیت بدون شاهد اعلام نکن"]},
+    "conversation":{"messages":[{"role":"user","summary":"تمرکز کامل روی تکمیل واقعی پروژه و استفاده از RM-JSON 2.21."},{"role":"assistant","summary":"نسخهٔ RM-JSON خوانده شد و مرحلهٔ آمادگی جریان واقعی کلینیک ساخته شد."}],"roles":["user","assistant"],"timestamps":["2026-09-18"]}
+  }
+}

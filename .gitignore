@@ -1,0 +1,28 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+data/migration/
+
+# Local credentials and live clinic data
+uu.txt
+.env
+.env.*
+!.env.example
+config/auth_users.json
+config/auth_invitations.json
+config/clinic_store.json
+config/backups/
+config/migration/
+data/
+db/*.sql
+___db__bbackup.sql
+
+# Local build/deployment artifacts
+dist/
+*.tar.gz
+*.zip

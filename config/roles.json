@@ -1,0 +1,44 @@
+{
+  "roles": [
+    {
+      "id": "admin",
+      "name": "مدیر",
+      "permissions": ["manage_users","approve_requests","manage_content","view_all_pets"]
+    },
+    {
+      "id": "staff",
+      "name": "پرسنل کلینیک",
+      "permissions": ["view_assigned_pets","edit_pet_records","play_media"]
+    },
+    {
+      "id": "pet_owner",
+      "name": "سرپرست پت",
+      "permissions": ["view_own_pets","play_media","request_services"]
+    },
+    {
+      "id": "visitor",
+      "name": "رهگذر/بازدیدکننده",
+      "permissions": ["view_public_education_only","request_access"]
+    },
+    {
+      "id": "vendor",
+      "name": "فروشنده / شریک",
+      "permissions": ["submit_proposal","view_public_education"]
+    },
+    {
+      "id": "dog_walker",
+      "name": "داگ واکر",
+      "permissions": ["submit_profile","view_public_education"]
+    },
+    {
+      "id": "boarding",
+      "name": "پانسیون",
+      "permissions": ["submit_profile","view_public_education"]
+    }
+  ],
+  "special": {
+    "pet": {
+      "note": "پت یک موجودیت مرکزی است؛ داشبورد، گالری و صداها حول پت طراحی می‌شود. دسترسی‌ها برای کاربرانی است که به پت دسترسی دارند (owner, staff, ...)."
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "clinic": {
+    "name": "کلینیک دامپزشکی مهرگان",
+    "address": "تهران، خیابان سلامت، پلاک 12",
+    "phone": "+98-21-12345678",
+    "email": "info@mehrgan-vet.example",
+    "timezone": "Asia/Tehran"
+  },
+  "staff": [
+    {
+      "id": "staff-1",
+      "name": "دکتر علی رضایی",
+      "role": "admin",
+      "email": "ali.rezaei@example.com",
+      "phone": "+98-912-1112222"
+    },
+    {
+      "id": "staff-2",
+      "name": "مینا پوراحمد",
+      "role": "staff",
+      "email": "mina.pour@example.com",
+      "phone": "+98-912-3334444"
+    },
+    {
+      "id": "staff-3",
+      "name": "رضا کریمی",
+      "role": "staff",
+      "email": "reza.karimi@example.com",
+      "phone": "+98-912-5556666"
+    }
+  ],
+  "services": [
+    {
+      "id": "svc-1",
+      "name": "ویزیت عمومی",
+      "price": 200000,
+      "description": "ویزیت پایه و مشاوره"
+    },
+    {
+      "id": "svc-2",
+      "name": "واکسیناسیون",
+      "price": 350000,
+      "description": "واکسیناسیون استاندارد حیوانات خانگی"
+    }
+  ],
+  "pets": [
+    {
+      "id": "pet-1",
+      "name": "بامزی",
+      "owner_id": "owner-1",
+      "breed": "German Shepherd",
+      "appearance_tags": ["black-tan", "medium"],
+      "birth_date": "2021-03-12",
+      "description": "سگ آرام و بازیگوش",
+      "media": [
+        {
+          "id": "media-1",
+          "type": "video",
+          "title": "بازی یک ژرمن شپرد خوشحال با فریزبی",
+          "source": "youtube",
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "tags": ["frisbee","german-shepherd","play"]
+        }
+      ],
+      "soundscapes": [
+        {
+          "id": "sfx-1",
+          "title": "باران آرام + پرنده‌ها",
+          "description": "آمبینت برای آرامش",
+          "file": "pet-1-rain-birds.mp3",
+          "duration_seconds": 300
+        }
+      ]
+    },
+    {
+      "id": "pet-2",
+      "name": "پوفی",
+      "owner_id": "owner-2",
+      "breed": "Persian Cat",
+      "appearance_tags": ["white","long-hair"],
+      "birth_date": "2020-07-01",
+      "description": "گربه اجتماعی و علاقه‌مند به نوازش",
+      "media": [],
+      "soundscapes": []
+    }
+  ],
+  "owners": [
+    {
+      "id": "owner-1",
+      "name": "سارا محمدی",
+      "email": "sara.mohamadi@example.com",
+      "phone": "+98-912-7778888",
+      "address": "تهران، خیابان گل"
+    },
+    {
+      "id": "owner-2",
+      "name": "امیر حسینی",
+      "email": "amir.hosseini@example.com",
+      "phone": "+98-912-9990000",
+      "address": "کرج، بلوار آبان"
+    }
+  ],
+  "access_requests": []
+}
