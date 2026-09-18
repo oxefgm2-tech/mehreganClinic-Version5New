@@ -2,38 +2,68 @@
   "roles": [
     {
       "id": "admin",
-      "name": "مدیر",
-      "permissions": ["manage_users","approve_requests","manage_content","view_all_pets"]
+      "name": "مدیر کلینیک",
+      "permissions": ["manage_users", "approve_requests", "manage_content", "view_all_pets", "manage_roles", "view_reports", "manage_billing", "manage_inventory", "manage_settings", "access_it_tools"]
     },
     {
-      "id": "staff",
-      "name": "پرسنل کلینیک",
-      "permissions": ["view_assigned_pets","edit_pet_records","play_media"]
+      "id": "it_developer",
+      "name": "کارشناس آی‌تی و توسعه",
+      "permissions": ["manage_users", "manage_roles", "access_it_tools", "manage_database", "manage_deployment", "view_logs", "manage_migrations", "access_legacy_systems", "manage_security", "manage_integrations"]
     },
     {
-      "id": "pet_owner",
+      "id": "senior_veterinarian",
+      "name": "مدیر ارشد و پزشک ارشد",
+      "permissions": ["manage_users", "approve_requests", "manage_content", "view_all_pets", "manage_surgery", "manage_anesthesia", "view_reports", "manage_clinical_protocols", "force_majeure", "manage_staff_schedule"]
+    },
+    {
+      "id": "veterinarian",
+      "name": "دامپزشک",
+      "permissions": ["view_assigned_pets", "edit_pet_records", "create_visits", "prescribe_medication", "manage_vaccinations", "manage_surgery_sessions", "view_lab_results", "manage_clinical_notes"]
+    },
+    {
+      "id": "groomer",
+      "name": "آرایشگر",
+      "permissions": ["view_assigned_pets", "manage_grooming_sessions", "manage_grooming_styles", "manage_grooming_portfolio", "manage_boarding_tasks", "view_pet_notes"]
+    },
+    {
+      "id": "receptionist",
+      "name": "پذیرش",
+      "permissions": ["view_assigned_pets", "create_pets", "create_owners", "manage_appointments", "manage_queues", "check_in_pets", "manage_patient_search", "view_basic_pet_info"]
+    },
+    {
+      "id": "cashier",
+      "name": "صندوقدار",
+      "permissions": ["manage_invoices", "process_payments", "view_financial_reports", "manage_deposits", "issue_receipts", "view_pet_owner_info"]
+    },
+    {
+      "id": "petshop_purchasing",
+      "name": "مسئول خرید پت‌شاپ",
+      "permissions": ["manage_inventory", "manage_suppliers", "create_purchase_orders", "manage_stock_levels", "scan_products", "view_product_catalog"]
+    },
+    {
+      "id": "petshop_sales",
+      "name": "مسئول فروش پت‌شاپ",
+      "permissions": ["manage_sales", "process_payments", "manage_loyalty", "view_inventory", "manage_customer_orders", "issue_receipts"]
+    },
+    {
+      "id": "owner",
       "name": "سرپرست پت",
-      "permissions": ["view_own_pets","play_media","request_services"]
+      "permissions": ["view_own_pets", "request_services", "view_medical_history", "view_vaccinations", "view_appointments", "receive_notifications"]
+    },
+    {
+      "id": "pet",
+      "name": "پت",
+      "permissions": ["view_own_profile", "play_media", "interactive_experience"]
     },
     {
       "id": "visitor",
       "name": "رهگذر/بازدیدکننده",
-      "permissions": ["view_public_education_only","request_access"]
+      "permissions": ["view_public_education_only", "request_access"]
     },
     {
-      "id": "vendor",
-      "name": "فروشنده / شریک",
-      "permissions": ["submit_proposal","view_public_education"]
-    },
-    {
-      "id": "dog_walker",
-      "name": "داگ واکر",
-      "permissions": ["submit_profile","view_public_education"]
-    },
-    {
-      "id": "boarding",
-      "name": "پانسیون",
-      "permissions": ["submit_profile","view_public_education"]
+      "id": "third_party_partner",
+      "name": "همکار بیرونی",
+      "permissions": ["submit_proposal", "view_public_education", "limited_access"]
     }
   ],
   "special": {

@@ -1639,9 +1639,12 @@ export default function App() {
       <AccessMatrixManagementModal
         isOpen={isAccessMatrixOpen}
         onClose={() => setIsAccessMatrixOpen(false)}
-        matrix={accessMatrix}
-        onUpdateMatrix={handleUpdateAccessMatrix}
-        logs={accessAuditLogs}
+        rolePermissions={accessMatrix?.rules || []}
+        onUpdateRolePermissions={handleUpdateAccessMatrix}
+        securityAlerts={accessMatrix?.alerts || []}
+        onUpdateSecurityAlerts={(alerts) => setAccessMatrix(prev => ({ ...prev, alerts }))}
+        currentRole={currentUser.role}
+        currentUserName={currentUser.name}
       />
 
       {/* Keyboard Shortcuts Guide Modal */}

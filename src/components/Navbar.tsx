@@ -21,7 +21,7 @@ import { User, UserRole } from '../types';
 
 const roleDisplayTitles: Partial<Record<UserRole, string>> = {
   admin: 'مدیر کلینیک',
-  it_developer: 'کارشناس ارشد IT (ارژنگ.پ)',
+  it_developer: 'کارشناس آی‌تی و توسعه',
   senior_veterinarian: 'مدیر ارشد و پزشک ارشد',
   veterinarian: 'دامپزشک',
   receptionist: 'پذیرش کلینیک',
@@ -87,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const rolesList: { role: UserRole; title: string }[] = [
     { role: 'admin', title: 'مدیر کلینیک' },
-    { role: 'it_developer', title: 'کارشناس آی‌تی و توسعه (ارژنک.پ)' },
+    { role: 'it_developer', title: 'کارشناس آی‌تی و توسعه' },
     { role: 'senior_veterinarian', title: 'مدیر ارشد و پزشک ارشد' },
     { role: 'veterinarian', title: 'دامپزشک' },
     { role: 'receptionist', title: 'پذیرش' },
@@ -254,7 +254,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {currentUser.name ? currentUser.name.slice(0, 1) : 'ا'}
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-[#2D3A27] leading-none">{currentUser.name || 'ارژنک.پ'}</span>
+                <span className="text-xs font-bold text-[#2D3A27] leading-none">{currentUser.name || 'کاربر'}</span>
                 <span className="text-[10px] text-[#5C7457] leading-tight mt-0.5">{roleDisplayTitles[currentUser.role] || 'کاربر کلینیک'}</span>
               </div>
             </button>

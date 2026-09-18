@@ -29,6 +29,7 @@ interface AccessMatrixManagementModalProps {
   securityAlerts: AccessMatrixSecurityAlert[];
   onUpdateSecurityAlerts: (alerts: AccessMatrixSecurityAlert[]) => void;
   currentRole: UserRole;
+  currentUserName?: string;
 }
 
 export const AccessMatrixManagementModal: React.FC<AccessMatrixManagementModalProps> = ({
@@ -39,6 +40,7 @@ export const AccessMatrixManagementModal: React.FC<AccessMatrixManagementModalPr
   securityAlerts,
   onUpdateSecurityAlerts,
   currentRole,
+  currentUserName,
 }) => {
   const [rules, setRules] = useState<RolePermissionRule[]>(rolePermissions);
   const [alerts, setAlerts] = useState<AccessMatrixSecurityAlert[]>(securityAlerts);
@@ -70,7 +72,7 @@ export const AccessMatrixManagementModal: React.FC<AccessMatrixManagementModalPr
 
     const newOverride = {
       permissionKey: overridePermissionKey,
-      grantedBy: currentRole === 'admin' ? 'مدیریت کلینیک' : 'ارژنک.پ (کارشناس ارشد آی‌تی)',
+      grantedBy: currentRole === 'admin' ? 'مدیریت کلینیک' : (currentUserName || 'کارشناس آی‌تی'),
       grantedAt: 'امروز، ' + new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
       reason: overrideReason,
       isTemporary: true,
@@ -93,7 +95,7 @@ export const AccessMatrixManagementModal: React.FC<AccessMatrixManagementModalPr
       role: selectedRoleToOverride,
       targetUserName: selectedRoleToOverride === 'groomer' ? 'آقای سهراب منصوری (آرایشگر)' : selectedRoleToOverride,
       permissionGranted: `اعطای موقت ${overridePermissionKey === 'canAccessCashier' ? 'دسترسی به صندوق' : String(overridePermissionKey)}`,
-      grantedBy: currentRole === 'admin' ? 'دکتر امین بیاتی' : 'کارشناس آی‌تی',
+      grantedBy: currentRole === 'admin' ? 'دکتر امین بیاتی' : (currentUserName || 'کارشناس آی‌تی'),
       timestamp: 'امروز، ' + new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
       status: 'active_alert',
       managerNotes: overrideReason,

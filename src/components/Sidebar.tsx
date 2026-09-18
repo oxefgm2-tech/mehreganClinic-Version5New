@@ -210,15 +210,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-[11px] text-[#D4E0CD] font-medium">نقش جاری و دسترسی فعال:</div>
           <div className="text-xs font-bold text-white flex items-center justify-between mt-0.5">
             <span>
-              {(userRole === 'admin' || userRole === 'senior_veterinarian') && 'مدیر ارشد و پزشک ارشد'}
-              {userRole === 'it_developer' && 'کارشناس آی‌تی و توسعه (IDE + کدنویسی)'}
-              {userRole === 'veterinarian' && 'دامپزشک (بالینی و جراحی)'}
-              {userRole === 'receptionist' && 'پذیرش (پرونده و نوبت)'}
-              {userRole === 'groomer' && 'آرایشگر (گرومینگ و پانسیون)'}
-              {userRole === 'cashier' && 'صندوقدار (امور مالی)'}
-              {userRole === 'petshop_purchasing' && 'مسئول خرید پت‌شاپ (انبار و اسکن)'}
-              {userRole === 'petshop_sales' && 'مسئول فروش پت‌شاپ (صندوق و مشاوره)'}
-              {userRole === 'owner' && 'سرپرست پت (پورتال اختصاصی)'}
+              {userRole === 'admin' && 'مدیر کلینیک'}
+              {userRole === 'senior_veterinarian' && 'مدیر ارشد و پزشک ارشد'}
+              {userRole === 'it_developer' && 'کارشناس آی‌تی و توسعه'}
+              {userRole === 'veterinarian' && 'دامپزشک'}
+              {userRole === 'receptionist' && 'پذیرش'}
+              {userRole === 'groomer' && 'آرایشگر'}
+              {userRole === 'cashier' && 'صندوقدار'}
+              {userRole === 'petshop_purchasing' && 'مسئول خرید پت‌شاپ'}
+              {userRole === 'petshop_sales' && 'مسئول فروش پت‌شاپ'}
+              {userRole === 'owner' && 'سرپرست پت'}
             </span>
           </div>
         </div>
