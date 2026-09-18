@@ -20,6 +20,7 @@ import {
 
 export const STORAGE_KEY_CENTRAL_API = 'MEHREGAN_CENTRAL_API_URL';
 export const STORAGE_KEY_AUTH_TOKEN = 'MEHREGAN_AUTH_TOKEN';
+export const STORAGE_KEY_ETAG_PREFIX = 'MEHREGAN_ETAG_';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -51,14 +52,41 @@ export function apiUrl(endpoint: string): string {
   return base ? `${base}${cleanEndpoint}` : cleanEndpoint;
 }
 
-export async function clinicFetch(endpoint: string, init?: RequestInit): Promise<Response> {
+function getETagKey(endpoint: string): string {
+  return `${STORAGE_KEY_ETAG_PREFIX}${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;
+}
+
+function getStoredETag(endpoint: string): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(getETagKey(endpoint));
+}
+
+function setStoredETag(endpoint: string, etag: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(getETagKey(endpoint), etag);
+  }
+}
+
+export async function clinicFetch(endpoint: string, init?: RequestInit, useETag = false): Promise<Response> {
   const resolvedUrl = apiUrl(endpoint);
   const headers = new Headers(init?.headers || {});
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem(STORAGE_KEY_AUTH_TOKEN);
     if (token) headers.set('Authorization', `Bearer ${token}`);
   }
-  return fetch(resolvedUrl, { ...init, headers });
+  if (useETag && (init?.method === 'GET' || !init?.method)) {
+    const etag = getStoredETag(endpoint);
+    if (etag) headers.set('If-None-Match', etag);
+  }
+  const res = await fetch(resolvedUrl, { ...init, headers });
+  if (res.status === 304) {
+    return new Response(null, { status: 304, statusText: 'Not Modified', headers: res.headers });
+  }
+  const newETag = res.headers.get('ETag');
+  if (newETag && useETag && (init?.method === 'GET' || !init?.method)) {
+    setStoredETag(endpoint, newETag);
+  }
+  return res;
 }
 
 export async function testCentralApiConnection(targetUrl?: string): Promise<{
@@ -123,11 +151,14 @@ export const apiClient = {
     return data;
   },
 
-  async getDataVersion(): Promise<{ version: string; updatedAt: string }> {
-    const res = await clinicFetch('/api/data-version', { headers: { Accept: 'application/json' } });
+  async getDataVersion(): Promise<{ version: string; updatedAt: string; notModified?: boolean }> {
+    const res = await clinicFetch('/api/data-version', { headers: { Accept: 'application/json' } }, true);
+    if (res.status === 304) {
+      return { version: '', updatedAt: '', notModified: true };
+    }
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'نسخهٔ داده‌ها دریافت نشد.');
-    return { version: String(data.version), updatedAt: String(data.updatedAt) };
+    return { version: String(data.version), updatedAt: String(data.updatedAt), notModified: false };
   },
 
   async updateCurrentUser(updates: Record<string, string>): Promise<any> {

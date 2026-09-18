@@ -133,6 +133,9 @@ export default function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isHydrating, setIsHydrating] = useState(false);
   const cacheVersionRef = useRef<string | null>(null);
+  const refreshLockRef = useRef<Promise<void> | null>(null);
+  const isRefreshingRef = useRef(false);
+  const [hydrationError, setHydrationError] = useState<string | null>(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [isInviteUserOpen, setIsInviteUserOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -259,112 +262,129 @@ export default function App() {
 
   // Hydrate persistent data from server API on boot and on sync/migration
   const refreshAllServerData = useCallback(async () => {
-    try {
-      const dataVersion = await apiClient.getDataVersion();
-      if (cacheVersionRef.current === dataVersion.version) return;
-      const [
-        serverPatients,
-        serverOwners,
-        serverVisits,
-        serverVaccinations,
-        serverInvoices,
-        serverAppointments,
-        serverQueues,
-        serverBoarding,
-        serverAttendance,
-        serverProducts,
-        serverSuppliers,
-        serverLoyalty,
-        serverSurgery,
-        serverGroomingStyles,
-        serverGroomingPortfolio,
-        serverAccessMatrix,
-        serverProfile,
-        dbStatus,
-      ] = await Promise.all([
-        apiClient.getPatients(),
-        apiClient.getOwners(),
-        apiClient.getVisits(),
-        apiClient.getVaccinations(),
-        apiClient.getInvoices(),
-        apiClient.getAppointments(),
-        apiClient.getQueues(),
-        apiClient.getBoarding(),
-        apiClient.getAttendance(),
-        apiClient.getPetShopProducts(),
-        apiClient.getSuppliers(),
-        apiClient.getLoyaltyMembers(),
-        apiClient.getSurgerySessions(),
-        apiClient.getGroomingStyles(),
-        apiClient.getGroomingPortfolio(),
-        apiClient.getAccessMatrix(),
-        apiClient.getClinicProfile(),
-        apiClient.getDatabaseStatus(),
-      ]);
-
-      if (dbStatus && dbStatus.initialized) {
-        // Explicitly wiped or initialized database
-        setPets(serverPatients || []);
-        setOwners(serverOwners || []);
-        setVisits(serverVisits || []);
-        setVaccinations(serverVaccinations || []);
-        setInvoices(serverInvoices || []);
-        setAppointments(serverAppointments || []);
-        setQueues(serverQueues && serverQueues.length > 0 ? serverQueues : initialClinicQueues);
-        setBoardingRecords(serverBoarding || []);
-        setAttendanceRecords(serverAttendance || []);
-        setProducts(serverProducts || []);
-        setSuppliers(serverSuppliers || []);
-        setLoyaltyMembers(serverLoyalty || []);
-        setSurgerySessions(serverSurgery || []);
-        if (serverGroomingStyles && serverGroomingStyles.length > 0) {
-          setGroomingStyles(serverGroomingStyles);
-        }
-        setGroomingPortfolio(serverGroomingPortfolio || []);
-        if (serverAccessMatrix) setAccessMatrix(serverAccessMatrix);
-        if (serverProfile && serverProfile.clinicName) setClinicProfile(serverProfile);
-      } else {
-        // Fallback default hydration
-        if (serverPatients && serverPatients.length > 0) setPets(serverPatients);
-        if (serverOwners && serverOwners.length > 0) setOwners(serverOwners);
-        if (serverVisits && serverVisits.length > 0) setVisits(serverVisits);
-        if (serverVaccinations && serverVaccinations.length > 0) setVaccinations(serverVaccinations);
-        if (serverInvoices && serverInvoices.length > 0) setInvoices(serverInvoices);
-        if (serverAppointments && serverAppointments.length > 0) setAppointments(serverAppointments);
-        if (serverQueues && serverQueues.length > 0) setQueues(serverQueues);
-        if (serverBoarding && serverBoarding.length > 0) setBoardingRecords(serverBoarding);
-        if (serverAttendance && serverAttendance.length > 0) setAttendanceRecords(serverAttendance);
-        if (serverProducts && serverProducts.length > 0) setProducts(serverProducts);
-        if (serverProfile && serverProfile.clinicName) setClinicProfile(serverProfile);
-      }
-
-      cacheVersionRef.current = dataVersion.version;
-      await writeLiveDataSnapshot(currentUser.username, {
-        version: dataVersion.version,
-        savedAt: new Date().toISOString(),
-        data: {
-          pets: serverPatients || [],
-          owners: serverOwners || [],
-          visits: serverVisits || [],
-          vaccinations: serverVaccinations || [],
-          invoices: serverInvoices || [],
-          appointments: serverAppointments || [],
-          queues: serverQueues || [],
-          boardingRecords: serverBoarding || [],
-          attendanceRecords: serverAttendance || [],
-          products: serverProducts || [],
-          suppliers: serverSuppliers || [],
-          loyaltyMembers: serverLoyalty || [],
-          surgerySessions: serverSurgery || [],
-          groomingStyles: serverGroomingStyles || [],
-          groomingPortfolio: serverGroomingPortfolio || [],
-          accessMatrix: serverAccessMatrix,
-          clinicProfile: serverProfile,
-        },
-      });
-    } catch (err) {
-      console.warn('Could not hydrate store from server:', err);
+    if (isRefreshingRef.current) return;
+    if (refreshLockRef.current) {
+      try { await refreshLockRef.current; } catch {}
+      return;
     }
+
+    isRefreshingRef.current = true;
+    setHydrationError(null);
+
+    const promise = (async () => {
+      try {
+        const dataVersion = await apiClient.getDataVersion();
+        if (dataVersion.notModified) return;
+        if (cacheVersionRef.current === dataVersion.version) return;
+        const [
+          serverPatients,
+          serverOwners,
+          serverVisits,
+          serverVaccinations,
+          serverInvoices,
+          serverAppointments,
+          serverQueues,
+          serverBoarding,
+          serverAttendance,
+          serverProducts,
+          serverSuppliers,
+          serverLoyalty,
+          serverSurgery,
+          serverGroomingStyles,
+          serverGroomingPortfolio,
+          serverAccessMatrix,
+          serverProfile,
+          dbStatus,
+        ] = await Promise.all([
+          apiClient.getPatients(),
+          apiClient.getOwners(),
+          apiClient.getVisits(),
+          apiClient.getVaccinations(),
+          apiClient.getInvoices(),
+          apiClient.getAppointments(),
+          apiClient.getQueues(),
+          apiClient.getBoarding(),
+          apiClient.getAttendance(),
+          apiClient.getPetShopProducts(),
+          apiClient.getSuppliers(),
+          apiClient.getLoyaltyMembers(),
+          apiClient.getSurgerySessions(),
+          apiClient.getGroomingStyles(),
+          apiClient.getGroomingPortfolio(),
+          apiClient.getAccessMatrix(),
+          apiClient.getClinicProfile(),
+          apiClient.getDatabaseStatus(),
+        ]);
+
+        if (dbStatus && dbStatus.initialized) {
+          setPets(serverPatients || []);
+          setOwners(serverOwners || []);
+          setVisits(serverVisits || []);
+          setVaccinations(serverVaccinations || []);
+          setInvoices(serverInvoices || []);
+          setAppointments(serverAppointments || []);
+          setQueues(serverQueues && serverQueues.length > 0 ? serverQueues : initialClinicQueues);
+          setBoardingRecords(serverBoarding || []);
+          setAttendanceRecords(serverAttendance || []);
+          setProducts(serverProducts || []);
+          setSuppliers(serverSuppliers || []);
+          setLoyaltyMembers(serverLoyalty || []);
+          setSurgerySessions(serverSurgery || []);
+          if (serverGroomingStyles && serverGroomingStyles.length > 0) {
+            setGroomingStyles(serverGroomingStyles);
+          }
+          setGroomingPortfolio(serverGroomingPortfolio || []);
+          if (serverAccessMatrix) setAccessMatrix(serverAccessMatrix);
+          if (serverProfile && serverProfile.clinicName) setClinicProfile(serverProfile);
+        } else {
+          if (serverPatients && serverPatients.length > 0) setPets(serverPatients);
+          if (serverOwners && serverOwners.length > 0) setOwners(serverOwners);
+          if (serverVisits && serverVisits.length > 0) setVisits(serverVisits);
+          if (serverVaccinations && serverVaccinations.length > 0) setVaccinations(serverVaccinations);
+          if (serverInvoices && serverInvoices.length > 0) setInvoices(serverInvoices);
+          if (serverAppointments && serverAppointments.length > 0) setAppointments(serverAppointments);
+          if (serverQueues && serverQueues.length > 0) setQueues(serverQueues);
+          if (serverBoarding && serverBoarding.length > 0) setBoardingRecords(serverBoarding);
+          if (serverAttendance && serverAttendance.length > 0) setAttendanceRecords(serverAttendance);
+          if (serverProducts && serverProducts.length > 0) setProducts(serverProducts);
+          if (serverProfile && serverProfile.clinicName) setClinicProfile(serverProfile);
+        }
+
+        cacheVersionRef.current = dataVersion.version;
+        await writeLiveDataSnapshot(currentUser.username, {
+          version: dataVersion.version,
+          savedAt: new Date().toISOString(),
+          data: {
+            pets: serverPatients || [],
+            owners: serverOwners || [],
+            visits: serverVisits || [],
+            vaccinations: serverVaccinations || [],
+            invoices: serverInvoices || [],
+            appointments: serverAppointments || [],
+            queues: serverQueues || [],
+            boardingRecords: serverBoarding || [],
+            attendanceRecords: serverAttendance || [],
+            products: serverProducts || [],
+            suppliers: serverSuppliers || [],
+            loyaltyMembers: serverLoyalty || [],
+            surgerySessions: serverSurgery || [],
+            groomingStyles: serverGroomingStyles || [],
+            groomingPortfolio: serverGroomingPortfolio || [],
+            accessMatrix: serverAccessMatrix,
+            clinicProfile: serverProfile,
+          },
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'خطای ناشناخته';
+        console.error('Hydration failed:', err);
+        setHydrationError(`همگام‌سازی داده‌ها ناموفق: ${msg}`);
+      } finally {
+        isRefreshingRef.current = false;
+      }
+    })();
+
+    refreshLockRef.current = promise;
+    try { await promise; } finally { refreshLockRef.current = null; }
   }, [currentUser.username]);
 
   useEffect(() => {
@@ -1234,6 +1254,14 @@ export default function App() {
         onOpenUserProfile={() => setIsUserProfileOpen(true)}
         onOpenInviteUser={['admin', 'it_developer'].includes(currentUser.role) ? () => setIsInviteUserOpen(true) : undefined}
       />
+
+      {/* Hydration Error Banner */}
+      {hydrationError && (
+        <div className="mx-auto max-w-7xl px-4 py-2 bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between">
+          <span>⚠ {hydrationError}</span>
+          <button onClick={() => { setHydrationError(null); refreshAllServerData(); }} className="ml-4 text-amber-700 hover:text-amber-900 font-bold text-sm px-2 py-1 rounded border border-amber-300">تلاش مجدد</button>
+        </div>
+      )}
 
       {/* Main Layout Body */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">
