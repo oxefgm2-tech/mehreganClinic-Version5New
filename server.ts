@@ -924,10 +924,12 @@ app.get('/api/visits', (req: Request, res: Response) => {
 
 app.post('/api/visits', (req: Request, res: Response) => {
   const visit = req.body;
-  if (!visit || !visit.id) {
+  const required = ['id', 'petId', 'date', 'chiefComplaint', 'diagnosis'];
+  const missing = required.filter((field) => !visit || !visit[field]);
+  if (missing.length > 0) {
     return uniformResponse(res, 400, {
       success: false,
-      error: 'شناسه ویزیت (id) الزامی است.',
+      error: `فیلدهای الزامی ویزیت отсут دارند: ${missing.join('، ')}`,
     });
   }
   const existingIdx = store.visits.findIndex(v => v.id === visit.id);
@@ -996,10 +998,12 @@ app.get('/api/vaccinations', (req: Request, res: Response) => {
 
 app.post('/api/vaccinations', (req: Request, res: Response) => {
   const vaccination = req.body;
-  if (!vaccination || !vaccination.id || !vaccination.patientId) {
+  const required = ['id', 'patientId', 'vaccineName', 'date'];
+  const missing = required.filter((field) => !vaccination || !vaccination[field]);
+  if (missing.length > 0) {
     return uniformResponse(res, 400, {
       success: false,
-      error: 'شناسه واکسن و شناسه بیمار الزامی است.',
+      error: `فیلدهای الزامی отсут دارند: ${missing.join('، ')}`,
     });
   }
   const existingIdx = store.vaccinations.findIndex(v => v.id === vaccination.id);
