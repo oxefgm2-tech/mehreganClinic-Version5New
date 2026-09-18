@@ -18,7 +18,7 @@ config/auth_invitations.json
 config/clinic_store.json
 config/backups/
 config/migration/
-data/
+/data/
 db/*.sql
 ___db__bbackup.sql
 
