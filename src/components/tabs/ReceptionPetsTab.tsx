@@ -51,7 +51,7 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
 
   useEffect(() => {
     const query = searchTerm.trim();
-    if (query.length < 2) {
+    if (query.length < 3) {
       setRemoteMatches([]);
       setIsSearchingRemote(false);
       return;
@@ -84,7 +84,7 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
     notes: '',
   });
 
-  const searchablePets = searchTerm.trim().length >= 2
+  const searchablePets = searchTerm.trim().length >= 3
     ? remoteMatches
     : pets.filter((pet) => pet.statusInClinic === 'waiting' || pet.statusInClinic === 'in_exam').slice(0, 10);
   const matchingPets = searchablePets.filter((pet) => {
@@ -100,8 +100,6 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
     const matchesSpecies = speciesFilter === 'all' || pet.species === speciesFilter;
     return matchesSearch && matchesSpecies;
   });
-  // Searching may inspect the full in-memory index, but React must only render a
-  // small page at a time. This keeps reception responsive with migrated records.
   const filteredPets = matchingPets.slice(0, 10);
 
   const handleCreatePetSubmit = (e: React.FormEvent) => {

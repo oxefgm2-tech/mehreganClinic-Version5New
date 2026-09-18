@@ -36,7 +36,7 @@ export const RemotePetSearchSelect: React.FC<RemotePetSearchSelectProps> = ({
       apiClient.getPatients(search, 10, '')
         .then((items) => setMatches(onlyPresent ? items.filter((pet) => pet.statusInClinic === 'waiting' || pet.statusInClinic === 'in_exam') : items))
         .catch(() => setMatches([]));
-    }, search.length >= 2 ? 220 : 0);
+    }, search.length >= 3 ? 220 : 0);
     return () => window.clearTimeout(timer);
   }, [query, onlyPresent]);
 

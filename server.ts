@@ -779,7 +779,10 @@ app.post('/api/system/test-connectivity', (req: Request, res: Response) => {
 app.get('/api/patients', (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const species = String(req.query.species || '').trim();
-  const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 50);
+  const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
+  if (query && query.length < 3) {
+    return uniformResponse(res, 200, { success: true, count: 0, data: [] });
+  }
   const filtered = store.patients.filter((patient) => {
     const matchesSpecies = !species || patient.species === species;
     const searchable = `${patient.name || ''} ${patient.breed || ''} ${patient.ownerName || ''} ${patient.ownerPhone || ''} ${patient.microchipNumber || ''}`.toLocaleLowerCase();
@@ -853,7 +856,10 @@ app.post('/api/patients/sync-all', (req: Request, res: Response) => {
 // 2. Owners
 app.get('/api/owners', (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
-  const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 50);
+  const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
+  if (query && query.length < 3) {
+    return uniformResponse(res, 200, { success: true, count: 0, data: [] });
+  }
   const filtered = query
     ? store.owners.filter((owner) => `${owner.fullName || owner.name || ''} ${owner.phone || ''} ${owner.email || ''} ${owner.nationalId || ''}`.toLocaleLowerCase().includes(query))
     : store.owners;
