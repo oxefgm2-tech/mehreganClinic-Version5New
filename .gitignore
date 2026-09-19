@@ -26,3 +26,6 @@ ___db__bbackup.sql
 dist/
 *.tar.gz
 *.zip
+
+# Accidental nested checkout kept outside the active repository history
+/mehreganClinic-Version5New/

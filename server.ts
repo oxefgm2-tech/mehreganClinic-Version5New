@@ -64,6 +64,23 @@ function isUserManager(user: AuthUser): boolean {
   return ['admin', 'it_developer'].includes(user.role);
 }
 
+function requireRoles(allowedRoles: string[]) {
+  return (req: Request, res: Response, next: () => void) => {
+    const user = sessionUser(req);
+    if (!user) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({ success: false, error: 'دسترسی این نقش به این بخش مجاز نیست.' });
+    }
+    next();
+  };
+}
+
+const patientRecordRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist', 'groomer', 'cashier'];
+const clinicalRecordRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian'];
+const appointmentRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist'];
+const financeRoles = ['admin', 'it_developer', 'cashier'];
+const boardingRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist', 'groomer'];
+
 function invitationsFile(): string {
   return process.env.AUTH_INVITATIONS_FILE || path.resolve(process.cwd(), 'config', 'auth_invitations.json');
 }
@@ -780,7 +797,7 @@ app.post('/api/system/test-connectivity', (req: Request, res: Response) => {
 
 // Persistent Entity APIs (Fully Atomic & Uniform Response)
 // 1. Patients
-app.get('/api/patients', (req: Request, res: Response) => {
+app.get('/api/patients', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const species = String(req.query.species || '').trim();
   const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
@@ -800,7 +817,7 @@ app.get('/api/patients', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/patients', (req: Request, res: Response) => {
+app.post('/api/patients', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const patient = req.body;
   if (!patient || !patient.id || !patient.name) {
     return uniformResponse(res, 400, {
@@ -822,7 +839,7 @@ app.post('/api/patients', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/patients/:id', (req: Request, res: Response) => {
+app.delete('/api/patients/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.patients.length;
   store.patients = store.patients.filter(p => p.id !== id);
@@ -839,7 +856,7 @@ app.delete('/api/patients/:id', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/patients/sync-all', (req: Request, res: Response) => {
+app.post('/api/patients/sync-all', requireRoles(['admin', 'it_developer']), (req: Request, res: Response) => {
   const { patients } = req.body;
   if (!Array.isArray(patients)) {
     return uniformResponse(res, 400, {
@@ -858,7 +875,7 @@ app.post('/api/patients/sync-all', (req: Request, res: Response) => {
 });
 
 // 2. Owners
-app.get('/api/owners', (req: Request, res: Response) => {
+app.get('/api/owners', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
   if (query && query.length < 3) {
@@ -875,7 +892,7 @@ app.get('/api/owners', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/owners', (req: Request, res: Response) => {
+app.post('/api/owners', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const owner = req.body;
   const ownerName = owner?.fullName || owner?.name;
   if (!owner || !owner.id || !ownerName) {
@@ -900,7 +917,7 @@ app.post('/api/owners', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/owners/:id', (req: Request, res: Response) => {
+app.delete('/api/owners/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.owners.length;
   store.owners = store.owners.filter(o => o.id !== id);
@@ -918,7 +935,7 @@ app.delete('/api/owners/:id', (req: Request, res: Response) => {
 });
 
 // 3. Clinical Visits
-app.get('/api/visits', (req: Request, res: Response) => {
+app.get('/api/visits', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.visits.length,
@@ -926,7 +943,7 @@ app.get('/api/visits', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/visits', (req: Request, res: Response) => {
+app.post('/api/visits', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const visit = req.body;
   const required = ['id', 'petId', 'date', 'chiefComplaint', 'diagnosis'];
   const missing = required.filter((field) => !visit || !visit[field]);
@@ -950,7 +967,7 @@ app.post('/api/visits', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/visits/:id/attachments', (req: Request, res: Response) => {
+app.post('/api/visits/:id/attachments', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const attachment = req.body;
   const targetVisit = store.visits.find(v => v.id === id);
@@ -972,7 +989,7 @@ app.post('/api/visits/:id/attachments', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/visits/:id', (req: Request, res: Response) => {
+app.delete('/api/visits/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.visits.length;
   store.visits = store.visits.filter(v => v.id !== id);
@@ -990,7 +1007,7 @@ app.delete('/api/visits/:id', (req: Request, res: Response) => {
 });
 
 // 3.1 Vaccination History (migration-ready storage API)
-app.get('/api/vaccinations', (req: Request, res: Response) => {
+app.get('/api/vaccinations', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : undefined;
   const data = patientId ? store.vaccinations.filter(v => v.patientId === patientId) : store.vaccinations;
   return uniformResponse(res, 200, {
@@ -1000,7 +1017,7 @@ app.get('/api/vaccinations', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/vaccinations', (req: Request, res: Response) => {
+app.post('/api/vaccinations', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const vaccination = req.body;
   const required = ['id', 'patientId', 'vaccineName', 'date'];
   const missing = required.filter((field) => !vaccination || !vaccination[field]);
@@ -1039,7 +1056,7 @@ app.get('/api/finance/accounting-documents', (req: Request, res: Response) => {
 });
 
 // 4. Appointments & Queues
-app.get('/api/appointments', (req: Request, res: Response) => {
+app.get('/api/appointments', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.appointments.length,
@@ -1047,7 +1064,7 @@ app.get('/api/appointments', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/appointments', (req: Request, res: Response) => {
+app.post('/api/appointments', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const appt = req.body;
   if (!appt || !appt.id) {
     return uniformResponse(res, 400, {
@@ -1069,7 +1086,7 @@ app.post('/api/appointments', (req: Request, res: Response) => {
   });
 });
 
-app.patch('/api/appointments/:id/status', (req: Request, res: Response) => {
+app.patch('/api/appointments/:id/status', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, operatorApprovalStatus, requiresDeposit, depositAmount, depositStatus, depositPaymentLink, depositTransactionRef } = req.body;
   const target = store.appointments.find(a => a.id === id);
@@ -1094,7 +1111,7 @@ app.patch('/api/appointments/:id/status', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/appointments/:id', (req: Request, res: Response) => {
+app.delete('/api/appointments/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian', 'receptionist']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.appointments.length;
   store.appointments = store.appointments.filter(a => a.id !== id);
@@ -1112,7 +1129,7 @@ app.delete('/api/appointments/:id', (req: Request, res: Response) => {
 });
 
 // Clinic Queues
-app.get('/api/queues', (req: Request, res: Response) => {
+app.get('/api/queues', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.queues.length,
@@ -1120,7 +1137,7 @@ app.get('/api/queues', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/queues', (req: Request, res: Response) => {
+app.post('/api/queues', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const queue = req.body;
   if (!queue || !queue.id) {
     return uniformResponse(res, 400, {
@@ -1142,7 +1159,7 @@ app.post('/api/queues', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/queues/:id', (req: Request, res: Response) => {
+app.delete('/api/queues/:id', requireRoles(['admin', 'it_developer', 'receptionist']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.queues.length;
   store.queues = store.queues.filter(q => q.id !== id);
@@ -1160,7 +1177,7 @@ app.delete('/api/queues/:id', (req: Request, res: Response) => {
 });
 
 // 5. Invoices & Cashier
-app.get('/api/invoices', (req: Request, res: Response) => {
+app.get('/api/invoices', requireRoles(financeRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.invoices.length,
@@ -1168,7 +1185,7 @@ app.get('/api/invoices', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/invoices', (req: Request, res: Response) => {
+app.post('/api/invoices', requireRoles(financeRoles), (req: Request, res: Response) => {
   const invoice = req.body;
   if (!invoice || !invoice.id) {
     return uniformResponse(res, 400, {
@@ -1190,7 +1207,7 @@ app.post('/api/invoices', (req: Request, res: Response) => {
   });
 });
 
-app.patch('/api/invoices/:id/pay', (req: Request, res: Response) => {
+app.patch('/api/invoices/:id/pay', requireRoles(financeRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { paymentMethod, notes, cashierName, amount } = req.body;
   const inv = store.invoices.find(i => i.id === id);
@@ -1219,7 +1236,7 @@ app.patch('/api/invoices/:id/pay', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/invoices/:id', (req: Request, res: Response) => {
+app.delete('/api/invoices/:id', requireRoles(['admin', 'it_developer']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.invoices.length;
   store.invoices = store.invoices.filter(i => i.id !== id);
@@ -1237,7 +1254,7 @@ app.delete('/api/invoices/:id', (req: Request, res: Response) => {
 });
 
 // 6. Boarding & Hospitalization
-app.get('/api/boarding', (req: Request, res: Response) => {
+app.get('/api/boarding', requireRoles(boardingRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.boarding.length,
@@ -1245,7 +1262,7 @@ app.get('/api/boarding', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/boarding', (req: Request, res: Response) => {
+app.post('/api/boarding', requireRoles(boardingRoles), (req: Request, res: Response) => {
   const record = req.body;
   if (!record || !record.id) {
     return uniformResponse(res, 400, {
@@ -1267,7 +1284,7 @@ app.post('/api/boarding', (req: Request, res: Response) => {
   });
 });
 
-app.patch('/api/boarding/:id/task', (req: Request, res: Response) => {
+app.patch('/api/boarding/:id/task', requireRoles(boardingRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { taskId, isCompleted, completedBy, completedAt, photoProofUrl, voiceMemoText } = req.body;
   const rec = store.boarding.find(b => b.id === id);
@@ -1304,7 +1321,7 @@ app.patch('/api/boarding/:id/task', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/boarding/:id', (req: Request, res: Response) => {
+app.delete('/api/boarding/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.boarding.length;
   store.boarding = store.boarding.filter(b => b.id !== id);
@@ -1577,7 +1594,7 @@ app.delete('/api/petshop/loyalty/:id', (req: Request, res: Response) => {
 
 // 9. Surgery Sessions & Grooming
 // Surgery Sessions
-app.get('/api/surgery/sessions', (req: Request, res: Response) => {
+app.get('/api/surgery/sessions', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.surgerySessions.length,
@@ -1585,7 +1602,7 @@ app.get('/api/surgery/sessions', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/surgery/sessions', (req: Request, res: Response) => {
+app.post('/api/surgery/sessions', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const session = req.body;
   if (!session || !session.id) {
     return uniformResponse(res, 400, {
@@ -1607,7 +1624,7 @@ app.post('/api/surgery/sessions', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/surgery/sessions/batch', (req: Request, res: Response) => {
+app.post('/api/surgery/sessions/batch', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const sessions = req.body;
   if (!Array.isArray(sessions)) {
     return uniformResponse(res, 400, {
@@ -1624,7 +1641,7 @@ app.post('/api/surgery/sessions/batch', (req: Request, res: Response) => {
   });
 });
 
-app.delete('/api/surgery/sessions/:id', (req: Request, res: Response) => {
+app.delete('/api/surgery/sessions/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.surgerySessions.length;
   store.surgerySessions = store.surgerySessions.filter(s => s.id !== id);
