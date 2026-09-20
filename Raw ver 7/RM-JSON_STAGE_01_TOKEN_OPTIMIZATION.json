@@ -1,0 +1,293 @@
+{
+  "rm_json": {
+    "v": "2.21",
+    "meta": {
+      "lang": "fa-IR",
+      "type": "operational",
+      "model": "GPT-5 Codex",
+      "timestamp": "2026-09-17T00:00:00+03:30",
+      "origin": "گفت‌وگوی توسعهٔ کلینیک مهرگان",
+      "purpose": "ثبت یک مرحلهٔ ۱۰تسکی برای کاهش مصرف توکن، افزایش تمرکز، جلوگیری از تکرار و حفظ قابلیت آزمون‌پذیری",
+      "domain": "software",
+      "profile": "project-management",
+      "ide": "Codex Work",
+      "workspace": "Z:\\Projects\\mehreganClinic\\Version5New",
+      "user": "مالک پروژهٔ کلینیک مهرگان",
+      "session": "مرحلهٔ بهینه‌سازی فرایند توسعه",
+      "environment": "Windows PowerShell، React/Vite، Express، PostgreSQL، VPS Ubuntu"
+    },
+    "query": {
+      "raw": "فایل RM-JSON 2.21 را بخوان، تاریخچه و ملاحظات کار را ثبت کن، یک مرحلهٔ ۱۰تسکی برای کاهش مصرف توکن و افزایش خروجی ایجاد کن و فعلاً فقط سند برنامه را برای مطالعه و تأیید ارائه بده.",
+      "intent": "طراحی و ثبت برنامهٔ اجرایی پیش از پیاده‌سازی",
+      "context": [
+        "کاربر گزارش‌های کوتاه‌تر و گام‌های بلندتر می‌خواهد.",
+        "پروژه روی mehreganpetclinic.ir و VPS فعال است.",
+        "نسخهٔ فعلی دارای PostgreSQL، کش کاربرمحور و بررسی fingerprint است.",
+        "این سند برای مطالعه و تأیید است و نباید به‌تنهایی باعث تغییر کد شود."
+      ]
+    },
+    "core": [
+      {
+        "id": "T01-baseline",
+        "claim": "خط مبنای مصرف توکن، زمان و خروجی باید قبل از بهینه‌سازی ثبت شود.",
+        "conf": 0.98,
+        "infer": ["بدون خط مبنا، ادعای کاهش مصرف قابل اندازه‌گیری نیست."],
+        "kind": "task",
+        "status": "todo",
+        "priority": 1,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["ثبت تعداد تقریبی پیام‌ها، دفعات خواندن فایل، دفعات build/deploy و خروجی مفید هر مرحله."],
+        "tests": ["وجود جدول baseline در گزارش مرحله.", "تفکیک کار مفید از گزارش تکراری."],
+        "files": ["RM-JSON_STAGE_01_TOKEN_OPTIMIZATION.json"],
+        "tags": ["measurement", "baseline"]
+      },
+      {
+        "id": "T02-history",
+        "claim": "پیشینهٔ تصمیم‌ها و بن‌بست‌ها باید یک‌بار و فشرده در زمینه ثبت شود.",
+        "conf": 0.99,
+        "infer": ["خواندن چندبارهٔ تاریخچه باعث مصرف توکن و تکرار تصمیم‌ها می‌شود."],
+        "kind": "finding",
+        "status": "todo",
+        "priority": 2,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["ثبت ملاحظات واقعی: مسیر نادرست handoff، نام دیتابیس کوچک، تعلیق hydration، کش گسترده، و نیاز به تفکیک clinic_store از جداول نرمال‌شده."],
+        "tests": ["هر ملاحظه باید یک پیامد یا اقدام اصلاحی داشته باشد.", "هیچ تصمیم حل‌نشده‌ای به‌عنوان انجام‌شده ثبت نشود."],
+        "tags": ["history", "lessons-learned"]
+      },
+      {
+        "id": "T03-context-contract",
+        "claim": "برای هر مرحله باید زمینهٔ فشرده، معتبر و قابل استفاده برای ادامه تعریف شود.",
+        "conf": 0.97,
+        "infer": ["زمینهٔ استاندارد مانع بازخوانی فایل‌ها و تکرار توضیحات می‌شود."],
+        "kind": "refactor",
+        "status": "todo",
+        "priority": 3,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["زمینه شامل وضعیت فعلی، فایل‌های کلیدی، محدودیت‌ها، خطرها و نقطهٔ ادامه باشد."],
+        "tests": ["یک عامل بعدی بتواند با خواندن زمینه مسیر را بدون بازخوانی کامل گفتگو ادامه دهد."],
+        "tags": ["context", "handoff"]
+      },
+      {
+        "id": "T04-reporting",
+        "claim": "گزارش‌ها باید با قالب ثابت و کوتاه تولید شوند: طرح، اقدام، تست، نتیجه، قدم بعد.",
+        "conf": 0.99,
+        "infer": ["گزارش‌های طولانی و تکراری خروجی عملی کمی نسبت به توکن مصرفی دارند."],
+        "kind": "refactor",
+        "status": "todo",
+        "priority": 4,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["هر گزارش وضعیت حداکثر چند خط باشد و فقط تغییر، تست و blocker را بگوید."],
+        "tests": ["نمونهٔ گزارش پیش و پس از قالب‌بندی مقایسه شود.", "نبود گزارش تکراری بین دو قدم متوالی."],
+        "tags": ["communication", "brevity"]
+      },
+      {
+        "id": "T05-tool-discipline",
+        "claim": "خواندن فایل‌ها و اجرای ابزارها باید محدود، هدفمند و موازی باشد.",
+        "conf": 0.98,
+        "infer": ["در کارهای قبلی چند بار فایل‌های مشابه یا خروجی‌های طولانی خوانده شد."],
+        "kind": "rule",
+        "status": "todo",
+        "priority": 5,
+        "assignee": "Codex",
+        "estimate": "متوسط",
+        "acceptance": ["ابتدا rg و محدودهٔ دقیق استفاده شود.", "تست‌های مستقل در یک فراخوانی موازی اجرا شوند.", "خروجی ابزارها محدود و خلاصه شود."],
+        "tests": ["عدم چاپ credential، دادهٔ خام بیمار یا خروجی غیرضروری.", "ثبت دلیل هر خواندن گستردهٔ فایل."],
+        "tags": ["tools", "parallelism", "privacy"]
+      },
+      {
+        "id": "T06-implementation-gates",
+        "claim": "هر تغییر باید به سه بخش عملیاتی، تست خروجی و معیار توقف تقسیم شود.",
+        "conf": 0.98,
+        "infer": ["این تقسیم از پیاده‌سازی نیمه‌کاره و گزارش موفقیت بدون شواهد جلوگیری می‌کند."],
+        "kind": "rule",
+        "status": "todo",
+        "priority": 6,
+        "assignee": "Codex",
+        "estimate": "متوسط",
+        "acceptance": ["برای هر تسک اقدام‌های دقیق، تست موفقیت و blocker احتمالی ثبت شود."],
+        "tests": ["تسک بدون معیار موفقیت قابل شروع نباشد.", "تست شکست یا rollback برای تغییرات پرریسک ثبت شود."],
+        "tags": ["gates", "acceptance"]
+      },
+      {
+        "id": "T07-deployment-discipline",
+        "claim": "ساخت، استقرار و smoke test باید در یک زنجیرهٔ کوتاه و قابل تکرار انجام شود.",
+        "conf": 0.99,
+        "infer": ["استقرارهای تکراری با توضیح زیاد ولی تست محدود، نسبت هزینه به نتیجه را بد می‌کند."],
+        "kind": "refactor",
+        "status": "todo",
+        "priority": 7,
+        "assignee": "Codex",
+        "estimate": "متوسط",
+        "acceptance": ["lint، build، deploy، health، API smoke و نتیجه در یک خروجی خلاصه ثبت شوند."],
+        "tests": ["health برابر 200.", "سرویس active.", "HTTPS برابر 200.", "حداقل endpointهای اصلی پاسخ موفق بدهند."],
+        "tags": ["deployment", "smoke-test"]
+      },
+      {
+        "id": "T08-data-safety",
+        "claim": "بهینه‌سازی توکن نباید باعث افشای credential یا از دست رفتن دادهٔ واقعی شود.",
+        "conf": 0.99,
+        "infer": ["در پروژه دادهٔ درمانی و هویتی واقعی وجود دارد و سرعت نباید بر صحت مقدم شود."],
+        "kind": "risk",
+        "status": "todo",
+        "priority": 8,
+        "assignee": "Codex",
+        "estimate": "متوسط",
+        "acceptance": ["credentialها چاپ نشوند.", "کش کاربرمحور باقی بماند.", "تغییرات clinic_store و جداول نرمال‌شده اشتباه روی هم نوشته نشوند."],
+        "tests": ["بررسی عدم وجود password/token در خروجی‌ها.", "تست سلامت داده پس از refresh.", "تست بازگشت امن در صورت شکست deploy."],
+        "tags": ["security", "clinical-data", "integrity"]
+      },
+      {
+        "id": "T09-stage-artifact",
+        "claim": "هر مرحله باید یک artifact قابل مطالعه و قابل ادامه داشته باشد.",
+        "conf": 0.97,
+        "infer": ["ثبت ساختاریافته، نیاز به بازسازی ذهنی مسیر را کم می‌کند."],
+        "kind": "doc",
+        "status": "in_progress",
+        "priority": 9,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["این فایل شامل زمینه، تاریخچه، ۱۰ تسک، وابستگی‌ها، تست‌ها و معیار تأیید باشد."],
+        "tests": ["JSON معتبر باشد.", "تعداد تسک‌ها دقیقاً ۱۰ باشد.", "تمام relationها به شناسهٔ موجود اشاره کنند."],
+        "files": ["RM-JSON_STAGE_01_TOKEN_OPTIMIZATION.json"],
+        "tags": ["artifact", "rm-json"]
+      },
+      {
+        "id": "T10-token-review",
+        "claim": "پس از اجرای مرحله باید مصرف تقریبی توکن و نسبت خروجی مفید به هزینه دوباره محاسبه شود.",
+        "conf": 0.98,
+        "infer": ["بهینه‌سازی بدون اندازه‌گیری پس از اجرا فقط یک ادعا باقی می‌ماند."],
+        "kind": "test",
+        "status": "todo",
+        "priority": 10,
+        "assignee": "Codex",
+        "estimate": "کوتاه",
+        "acceptance": ["baseline با مقدار پس از مرحله مقایسه شود.", "کاهش گزارش‌های تکراری و خواندن‌های غیرضروری جداگانه سنجیده شود.", "مواردی که نباید کوتاه شوند شناسایی شوند."],
+        "tests": ["گزارش قبل/بعد با روش محاسبه ثبت شود.", "حداقل یک نتیجهٔ عددی یا بازهٔ عددی ارائه شود.", "ادعاهای کیفی بدون شواهد عددی برچسب تخمینی بخورند."],
+        "tags": ["metrics", "review", "tokens"]
+      }
+    ],
+    "relations": [
+      { "s": "T01-baseline", "t": "T10-token-review", "r": "enables", "w": 1.0, "source": "این مرحله" },
+      { "s": "T02-history", "t": "T03-context-contract", "r": "informs", "w": 1.0, "source": "بن‌بست‌های ثبت‌شده" },
+      { "s": "T03-context-contract", "t": "T04-reporting", "r": "supports", "w": 0.9, "source": "کاهش تکرار" },
+      { "s": "T04-reporting", "t": "T05-tool-discipline", "r": "reinforces", "w": 0.8, "source": "گزارش کوتاه و ابزار هدفمند" },
+      { "s": "T05-tool-discipline", "t": "T06-implementation-gates", "r": "supports", "w": 0.9, "source": "خروجی قابل آزمون" },
+      { "s": "T06-implementation-gates", "t": "T07-deployment-discipline", "r": "enables", "w": 0.9, "source": "گیت‌های عملیاتی" },
+      { "s": "T07-deployment-discipline", "t": "T08-data-safety", "r": "tests", "w": 0.9, "source": "smoke و سلامت داده" },
+      { "s": "T08-data-safety", "t": "T10-token-review", "r": "constrains", "w": 0.8, "source": "بهینه‌سازی نباید کیفیت و امنیت را قربانی کند" },
+      { "s": "T09-stage-artifact", "t": "T10-token-review", "r": "documents", "w": 0.8, "source": "ثبت قابل مقایسه" }
+    ],
+    "ranking": {
+      "execution": ["T01-baseline", "T02-history", "T03-context-contract", "T04-reporting", "T05-tool-discipline", "T06-implementation-gates", "T07-deployment-discipline", "T08-data-safety", "T09-stage-artifact", "T10-token-review"],
+      "importance": ["T08-data-safety", "T06-implementation-gates", "T01-baseline", "T07-deployment-discipline", "T03-context-contract"],
+      "critical_path": ["T01-baseline", "T03-context-contract", "T05-tool-discipline", "T06-implementation-gates", "T07-deployment-discipline", "T10-token-review"],
+      "risk": ["T08-data-safety", "T07-deployment-discipline", "T05-tool-discipline", "T10-token-review"],
+      "impact": ["T04-reporting", "T05-tool-discipline", "T03-context-contract", "T07-deployment-discipline"],
+      "effort": ["T04-reporting", "T01-baseline", "T02-history", "T09-stage-artifact", "T05-tool-discipline", "T06-implementation-gates", "T07-deployment-discipline", "T08-data-safety", "T10-token-review"],
+      "confidence": ["T02-history", "T04-reporting", "T07-deployment-discipline", "T08-data-safety", "T01-baseline"]
+    },
+    "inference": {
+      "reasoning": [
+        "بخش مهمی از مصرف قبلی از تکرار خواندن فایل‌ها، گزارش‌های طولانی، تأییدهای متوالی و rebuild/deployهای نزدیک به هم ایجاد شده است.",
+        "برخی بن‌بست‌ها از فرض نادرست دربارهٔ مسیر handoff، نام دیتابیس، محل استقرار و منبع حقیقت داده ایجاد شدند.",
+        "در کش اولیه، سرعت به‌درستی هدف قرار گرفت اما ذخیرهٔ گستردهٔ دادهٔ درمانی در کلاینت نیازمند تفکیک کاربرمحور بود.",
+        "بهینه‌سازی باید هزینهٔ ارتباط را کم کند، نه اینکه تست، صحت داده، امنیت یا قابلیت rollback را حذف کند."
+      ],
+      "verdict": "طرح ۱۰تسکی آمادهٔ مطالعه و تأیید است؛ تا قبل از تأیید، اجرای این مرحله مجاز نیست.",
+      "plan": [
+        "ثبت baseline و تاریخچهٔ فشرده",
+        "استانداردسازی زمینه و گزارش",
+        "اجرای منضبط ابزار و گیت‌های تست",
+        "استقرار کوتاه و قابل تکرار",
+        "اندازه‌گیری نتیجه و مقایسهٔ توکن"
+      ],
+      "next_actions": ["مطالعهٔ این فایل توسط کاربر", "تأیید یا اصلاح تسک‌ها", "اجرای فقط تسک‌های تأییدشده", "ثبت baseline و نتیجهٔ واقعی"],
+      "risks": [
+        "کوتاه‌سازی بیش از حد ممکن است خطای تشخیصی را پنهان کند.",
+        "حذف خواندن زمینه ممکن است باعث تکرار یک بن‌بست قدیمی شود.",
+        "کش یا خروجی ابزار نباید credential یا دادهٔ خام درمانی را افشا کند.",
+        "تغییرات دیتابیس باید بین clinic_store و جداول نرمال‌شده تفکیک شوند."
+      ],
+      "alternatives": ["ثبت مرحله در Markdown ساده به‌جای RM-JSON", "اجرای مرحله در یک branch جدا", "اجرای فقط سه تسک اول به‌عنوان آزمایش کوچک"],
+      "assumptions": ["کاربر فعلاً فقط سند برنامه را می‌خواهد.", "پروژه و VPS فعلی منبع عملیاتی اصلی هستند.", "توکن واقعی مدل در دسترس مستقیم نیست و اندازه‌گیری اولیه باید تقریبی/بر مبنای لاگ باشد."]
+    },
+    "quality": {
+      "confidence": 0.95,
+      "coverage": 0.92,
+      "completeness": 0.93,
+      "reproducibility": {
+        "status": "partial",
+        "attempts": 1,
+        "successful": 1,
+        "independent_replicators": 0,
+        "method": "بازخوانی فایل RM-JSON و ثبت برنامه در قالب v2.21",
+        "environment": "Codex Work / Windows PowerShell / پروژهٔ Version5New",
+        "evidence": ["فایل RM-JSON 2.21 خوانده شد.", "تعداد core taskها برابر ۱۰ ثبت شد."],
+        "commands": ["Get-Content -Raw 'C:\\Users\\Oxef\\Documents\\RM-JSON 2.21_Design.json'", "ConvertFrom-Json"]
+      },
+      "provenance": {
+        "origin": "جلسهٔ توسعهٔ کلینیک مهرگان",
+        "sources": ["C:\\Users\\Oxef\\Documents\\RM-JSON 2.21_Design.json", "HANDOFF_VERSION5_NEXT_AGENT.md", "تاریخچهٔ همین جلسه"],
+        "derived_from": ["پیاده‌سازی PostgreSQL", "استقرار VPS", "کش IndexedDB کاربرمحور", "fingerprint جداول PostgreSQL", "گزارش‌های کاربر دربارهٔ طولانی بودن روند"],
+        "generator": "Codex",
+        "created_at": "2026-09-17T00:00:00+03:30",
+        "modified_at": "2026-09-17T00:00:00+03:30",
+        "revision": "stage-01-draft-1",
+        "human_review": false
+      },
+      "verification": {
+        "tests": "بررسی ساختاری سند انجام شد؛ اجرای عملیاتی هنوز انجام نشده است.",
+        "lint": null,
+        "type_check": null,
+        "build": null,
+        "security": "credentialها و مقادیر حساس در این سند درج نشده‌اند.",
+        "performance": "هدف مرحله ثبت شده، اندازه‌گیری واقعی به بعد از تأیید موکول است.",
+        "human_review": "در انتظار مطالعه و تأیید کاربر",
+        "evidence": ["ساختار JSON بر اساس RM-JSON 2.21 تنظیم شد.", "تعداد تسک‌ها دقیقاً ۱۰ است."]
+      },
+      "security": 0.92,
+      "performance": 0.88,
+      "documentation": 0.96,
+      "maintainability": 0.94
+    },
+    "project": {
+      "name": "Mehregan Clinic — Token and Workflow Optimization",
+      "milestones": [{"id": "M01", "name": "تأیید مرحلهٔ ۱۰تسکی", "status": "pending_user_review"}],
+      "roadmap": ["ثبت baseline", "اجرای کنترل‌های ارتباطی", "اجرای گیت‌های عملیاتی", "محاسبهٔ صرفه‌جویی", "تصمیم برای مرحلهٔ بعد"],
+      "risks": ["کم‌گویی افراطی", "از دست دادن زمینه", "افشای داده", "تکرار استقرار", "اندازه‌گیری غیرواقعی توکن"],
+      "dependencies": ["تأیید کاربر", "لاگ‌های قابل شمارش", "حفظ تست‌های lint/build/smoke", "دسترسی پروژه و VPS"]
+    },
+    "code": {
+      "files": ["HANDOFF_VERSION5_NEXT_AGENT.md", "server.ts", "src/App.tsx", "src/services/apiClient.ts", "src/services/dataCache.ts"],
+      "tests": ["npm run lint", "npm run build", "health/status/API smoke tests"],
+      "smells": ["گزارش‌های تکراری", "خواندن گستردهٔ فایل بدون خروجی محدود", "وابستگی به حافظهٔ مکالمه به‌جای artifact", "سنجهٔ ناقص مصرف توکن"],
+      "refactors": ["گزارش کوتاه استاندارد", "زمینهٔ ساختاریافته", "اجرای موازی تست‌های مستقل", "استقرار زنجیره‌ای"]
+    },
+    "ai": {
+      "model": "GPT-5 Codex",
+      "prompt": "با RM-JSON 2.21 یک مرحلهٔ ۱۰تسکی برای کاهش مصرف توکن و افزایش قابلیت پیگیری پروژه ایجاد کن؛ فعلاً فقط سند را بساز.",
+      "reasoning": ["فشرده‌سازی زمینه", "جلوگیری از تکرار", "حفظ تست و امنیت", "مقایسهٔ قبل و بعد"],
+      "confidence": 0.95,
+      "tokens": {"measurement_status": "not_available_directly", "estimate_method": "ثبت رخدادها و مقایسهٔ اندازهٔ گزارش/ابزار در مرحلهٔ بعد"}
+    },
+    "vibe": {
+      "style": "کوتاه، متمرکز، گام‌های بلند، نتیجه‌محور",
+      "tone": "همکار فنی و دقیق",
+      "constraints": ["گزارش اضافه نده", "credential چاپ نکن", "بدون تأیید وارد اجرای مرحله نشو", "تست موفقیت را کنار هر اقدام ثبت کن"],
+      "do": ["اول طرح هر قدم را بگو", "پس از مکث شروع را اعلام کن", "اقدام و تست را جدا ثبت کن", "نتیجه و قدم بعد را کوتاه بگو"],
+      "dont": ["تکرار تاریخچهٔ کامل", "استقرار چندباره برای تغییر کوچک", "ادعای موفقیت بدون تست", "ذخیرهٔ دادهٔ حساس در گزارش"]
+    },
+    "conversation": {
+      "messages": [
+        {"role": "user", "summary": "مصرف توکن زیاد است و روند باید بهینه شود."},
+        {"role": "assistant", "summary": "فایل RM-JSON خوانده شود و مرحلهٔ ۱۰تسکی پیش از اجرا ثبت شود."}
+      ],
+      "roles": ["user", "assistant"],
+      "timestamps": ["2026-09-17"]
+    }
+  }
+}

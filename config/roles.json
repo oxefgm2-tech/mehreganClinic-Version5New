@@ -3,72 +3,147 @@
     {
       "id": "admin",
       "name": "مدیر کلینیک",
-      "permissions": ["manage_users", "approve_requests", "manage_content", "view_all_pets", "manage_roles", "view_reports", "manage_billing", "manage_inventory", "manage_settings", "access_it_tools"]
+      "permissions": [
+        "patients.read", "patients.write", "patients.delete", "patients.read.own",
+        "owners.read", "owners.write", "owners.delete",
+        "visits.read", "visits.write", "visits.delete",
+        "vaccinations.read", "vaccinations.write", "vaccinations.delete",
+        "appointments.read", "appointments.write", "appointments.delete",
+        "queues.read", "queues.write", "queues.delete",
+        "invoices.read", "invoices.write", "invoices.delete", "invoices.pay",
+        "boarding.read", "boarding.write", "boarding.delete",
+        "surgery.read", "surgery.write", "surgery.delete",
+        "attendance.read", "attendance.write", "attendance.my_read", "attendance.clock",
+        "petshop.read", "petshop.write", "petshop.delete",
+        "users.manage", "roles.manage", "settings.manage", "audit.view"
+      ]
     },
     {
       "id": "it_developer",
       "name": "کارشناس آی‌تی و توسعه",
-      "permissions": ["manage_users", "manage_roles", "access_it_tools", "manage_database", "manage_deployment", "view_logs", "manage_migrations", "access_legacy_systems", "manage_security", "manage_integrations"]
+      "permissions": [
+        "patients.read", "patients.write", "patients.delete", "patients.read.own",
+        "owners.read", "owners.write", "owners.delete",
+        "visits.read", "visits.write", "visits.delete",
+        "vaccinations.read", "vaccinations.write", "vaccinations.delete",
+        "appointments.read", "appointments.write", "appointments.delete",
+        "queues.read", "queues.write", "queues.delete",
+        "invoices.read", "invoices.write", "invoices.delete", "invoices.pay",
+        "boarding.read", "boarding.write", "boarding.delete",
+        "surgery.read", "surgery.write", "surgery.delete",
+        "attendance.read", "attendance.write", "attendance.my_read", "attendance.clock",
+        "petshop.read", "petshop.write", "petshop.delete",
+        "users.manage", "roles.manage", "settings.manage", "audit.view"
+      ]
     },
     {
       "id": "senior_veterinarian",
       "name": "مدیر ارشد و پزشک ارشد",
-      "permissions": ["manage_users", "approve_requests", "manage_content", "view_all_pets", "manage_surgery", "manage_anesthesia", "view_reports", "manage_clinical_protocols", "force_majeure", "manage_staff_schedule"]
+      "permissions": [
+        "patients.read", "patients.write", "patients.read.own",
+        "owners.read", "owners.write",
+        "visits.read", "visits.write", "visits.delete",
+        "vaccinations.read", "vaccinations.write", "vaccinations.delete",
+        "appointments.read", "appointments.write", "appointments.delete",
+        "queues.read", "queues.write",
+        "invoices.read",
+        "boarding.read", "boarding.write", "boarding.delete",
+        "surgery.read", "surgery.write", "surgery.delete",
+        "attendance.read", "attendance.write", "attendance.my_read", "attendance.clock",
+        "petshop.read"
+      ]
     },
     {
       "id": "veterinarian",
       "name": "دامپزشک",
-      "permissions": ["view_assigned_pets", "edit_pet_records", "create_visits", "prescribe_medication", "manage_vaccinations", "manage_surgery_sessions", "view_lab_results", "manage_clinical_notes"]
+      "permissions": [
+        "patients.read", "patients.write", "patients.read.own",
+        "owners.read",
+        "visits.read", "visits.write", "visits.delete",
+        "vaccinations.read", "vaccinations.write", "vaccinations.delete",
+        "appointments.read", "appointments.write",
+        "boarding.read", "boarding.write",
+        "surgery.read", "surgery.write",
+        "attendance.my_read", "attendance.clock"
+      ]
     },
     {
       "id": "groomer",
       "name": "آرایشگر",
-      "permissions": ["view_assigned_pets", "manage_grooming_sessions", "manage_grooming_styles", "manage_grooming_portfolio", "manage_boarding_tasks", "view_pet_notes"]
+      "permissions": [
+        "patients.read", "patients.read.own",
+        "owners.read",
+        "boarding.read", "boarding.write",
+        "attendance.my_read", "attendance.clock",
+        "petshop.read"
+      ]
     },
     {
       "id": "receptionist",
       "name": "پذیرش",
-      "permissions": ["view_assigned_pets", "create_pets", "create_owners", "manage_appointments", "manage_queues", "check_in_pets", "manage_patient_search", "view_basic_pet_info"]
+      "permissions": [
+        "patients.read", "patients.write", "patients.read.own",
+        "owners.read", "owners.write",
+        "appointments.read", "appointments.write",
+        "queues.read", "queues.write",
+        "invoices.read",
+        "attendance.my_read", "attendance.clock",
+        "petshop.read"
+      ]
     },
     {
       "id": "cashier",
       "name": "صندوقدار",
-      "permissions": ["manage_invoices", "process_payments", "view_financial_reports", "manage_deposits", "issue_receipts", "view_pet_owner_info"]
+      "permissions": [
+        "patients.read", "patients.read.own",
+        "owners.read",
+        "invoices.read", "invoices.write", "invoices.pay",
+        "attendance.my_read", "attendance.clock",
+        "petshop.read", "petshop.write"
+      ]
     },
     {
       "id": "petshop_purchasing",
       "name": "مسئول خرید پت‌شاپ",
-      "permissions": ["manage_inventory", "manage_suppliers", "create_purchase_orders", "manage_stock_levels", "scan_products", "view_product_catalog"]
+      "permissions": [
+        "patients.read", "patients.read.own",
+        "petshop.read", "petshop.write", "petshop.delete",
+        "attendance.my_read", "attendance.clock"
+      ]
     },
     {
       "id": "petshop_sales",
       "name": "مسئول فروش پت‌شاپ",
-      "permissions": ["manage_sales", "process_payments", "manage_loyalty", "view_inventory", "manage_customer_orders", "issue_receipts"]
+      "permissions": [
+        "patients.read", "patients.read.own",
+        "owners.read",
+        "invoices.read", "invoices.pay",
+        "petshop.read", "petshop.write",
+        "attendance.my_read", "attendance.clock"
+      ]
     },
     {
       "id": "owner",
       "name": "سرپرست پت",
-      "permissions": ["view_own_pets", "request_services", "view_medical_history", "view_vaccinations", "view_appointments", "receive_notifications"]
+      "permissions": [
+        "patients.read.own",
+        "attendance.my_read"
+      ]
     },
     {
       "id": "pet",
       "name": "پت",
-      "permissions": ["view_own_profile", "play_media", "interactive_experience"]
+      "permissions": []
     },
     {
       "id": "visitor",
       "name": "رهگذر/بازدیدکننده",
-      "permissions": ["view_public_education_only", "request_access"]
+      "permissions": []
     },
     {
       "id": "third_party_partner",
       "name": "همکار بیرونی",
-      "permissions": ["submit_proposal", "view_public_education", "limited_access"]
+      "permissions": []
     }
-  ],
-  "special": {
-    "pet": {
-      "note": "پت یک موجودیت مرکزی است؛ داشبورد، گالری و صداها حول پت طراحی می‌شود. دسترسی‌ها برای کاربرانی است که به پت دسترسی دارند (owner, staff, ...)."
-    }
-  }
+  ]
 }

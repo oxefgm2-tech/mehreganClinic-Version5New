@@ -1,0 +1,15 @@
+[Unit]
+Description=Vet Clinic App
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/vet-clinic
+EnvironmentFile=/opt/vet-clinic/deploy.env
+ExecStart=/bin/bash -lc "cd /opt/vet-clinic && npm run start"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

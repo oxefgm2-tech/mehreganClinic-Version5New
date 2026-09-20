@@ -8,42 +8,71 @@ import { GoogleGenAI } from '@google/genai';
 import { Pool } from 'pg';
 import { randomUUID, createHash } from 'crypto';
 import { initialNotifications } from './src/data/mockDatabase';
-import { sessionUser } from './src/auth/session';
-import { requirePermission, requireAuth, requireOwnership } from './src/middleware/auth';
-import { initRBAC } from './src/utils/rbac';
 
 dotenv.config();
 
-// Initialize RBAC on startup
-initRBAC();
-
 const app = express();
-const PORT = Number.parseInt(process.env.PORT || '3000', 10) || 3000;
+const PORT = 3000;
 
-// Type definitions
+// Enable CORS for decoupling: allows requests from Localhost clients, mobile PWAs, and remote domains
+app.use(
+  cors({
+    origin: '*', // Allow all origins for local clinic PCs and mobile devices
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Clinic-Role', 'X-Client-Platform'],
+    credentials: false,
+  })
+);
+
+app.use(express.json({ limit: '25mb' }));
+
 type AuthUser = { username: string; password: string; role: string; name: string; phone?: string; email?: string };
 type UserInvitation = { token: string; name: string; phone?: string; email?: string; role: string; createdAt: string; createdBy: string; usedAt?: string };
 const authSessions = new Map<string, AuthUser>();
 const authBootstrapToken = process.env.AUTH_BOOTSTRAP_TOKEN || '';
 
 function configuredAuthUsers(): AuthUser[] {
+  const configuredFile = process.env.AUTH_USERS_FILE || path.resolve(process.cwd(), 'config', 'auth_users.json');
   try {
-    const configuredFile = process.env.AUTH_USERS_FILE || path.resolve(process.cwd(), 'config', 'auth_users.json');
     if (fs.existsSync(configuredFile)) {
       const users = JSON.parse(fs.readFileSync(configuredFile, 'utf-8'));
-      if (Array.isArray(users)) return users;
+      if (Array.isArray(users) && users.length > 0) return users;
     }
     const raw = process.env.AUTH_USERS_JSON;
     if (raw) {
       const users = JSON.parse(raw);
-      if (Array.isArray(users)) return users;
+      if (Array.isArray(users) && users.length > 0) return users;
     }
   } catch {
     console.warn('Ignoring invalid AUTH_USERS_JSON.');
   }
-  return authBootstrapToken
-    ? [{ username: 'admin', password: authBootstrapToken, role: 'admin', name: 'مدیر کلینیک' }]
-    : [];
+
+  // Auto-bootstrap default users file if absent or empty
+  const defaultPassword = process.env.AUTH_BOOTSTRAP_TOKEN || 'admin123456';
+  const defaultUsers: AuthUser[] = [
+    { username: 'admin', password: defaultPassword, role: 'admin', name: 'مدیر کلینیک', phone: '09121112222', email: 'admin@mehreganpetclinic.ir' },
+    { username: 'arjanak.p', password: process.env.VITE_TEST_IT_PASSWORD || defaultPassword, role: 'it_developer', name: 'ارژنک.پ', phone: '09120001122', email: 'it@mehreganpetclinic.ir' },
+    { username: 'dr.amin.bayati', password: process.env.VITE_TEST_CHIEF_PASSWORD || defaultPassword, role: 'senior_veterinarian', name: 'دکتر امین بیاتی', phone: '09123334444', email: 'dr.bayati@mehreganpetclinic.ir' },
+    { username: 'doctor.mehregan', password: process.env.VITE_TEST_DOCTOR_PASSWORD || defaultPassword, role: 'veterinarian', name: 'دامپزشک کلینیک', phone: '09125556666', email: 'doctor@mehreganpetclinic.ir' },
+    { username: 'reception.mehregan', password: process.env.VITE_TEST_RECEPTION_PASSWORD || defaultPassword, role: 'receptionist', name: 'مسئول پذیرش', phone: '09127778888', email: 'reception@mehreganpetclinic.ir' },
+    { username: 'grooming.mehregan', password: process.env.VITE_TEST_GROOMING_PASSWORD || defaultPassword, role: 'groomer', name: 'سهراب منصوری (آرایشگر)', phone: '09128889999', email: 'grooming@mehreganpetclinic.ir' },
+    { username: 'cashier.mehregan', password: process.env.VITE_TEST_CASHIER_PASSWORD || defaultPassword, role: 'cashier', name: 'صندوقدار کلینیک', phone: '09126667777', email: 'cashier@mehreganpetclinic.ir' },
+    { username: 'petshop.buy', password: process.env.VITE_TEST_BUY_PASSWORD || defaultPassword, role: 'petshop_purchasing', name: 'مسئول خرید پت‌شاپ', phone: '09124445555', email: 'buy@mehreganpetclinic.ir' },
+    { username: 'petshop.sales', password: process.env.VITE_TEST_SALES_PASSWORD || defaultPassword, role: 'petshop_sales', name: 'مسئول فروش پت‌شاپ', phone: '09122223333', email: 'sales@mehreganpetclinic.ir' },
+    { username: 'pet.owner', password: process.env.VITE_TEST_OWNER_PASSWORD || defaultPassword, role: 'owner', name: 'سرپرست مراجع', phone: '09123456789', email: 'owner@example.com' },
+  ];
+  try {
+    fs.mkdirSync(path.dirname(configuredFile), { recursive: true });
+    fs.writeFileSync(configuredFile, JSON.stringify(defaultUsers, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Could not auto-create auth_users.json:', err);
+  }
+  return defaultUsers;
+}
+
+function sessionUser(req: Request): AuthUser | undefined {
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  return token ? authSessions.get(token) : undefined;
 }
 
 function isTaskManager(user: AuthUser): boolean {
@@ -54,21 +83,22 @@ function isUserManager(user: AuthUser): boolean {
   return ['admin', 'it_developer'].includes(user.role);
 }
 
-// Enable CORS for decoupling: allows requests from Localhost clients, mobile PWAs, and remote domains
-app.use(
-  cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Clinic-Role', 'X-Client-Platform'],
-    credentials: false,
-  })
-);
+function requireRoles(allowedRoles: string[]) {
+  return (req: Request, res: Response, next: () => void) => {
+    const user = sessionUser(req);
+    if (!user) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
+    if (!allowedRoles.includes(user.role)) {
+      return res.status(403).json({ success: false, error: 'دسترسی این نقش به این بخش مجاز نیست.' });
+    }
+    next();
+  };
+}
 
-// Explicit OPTIONS handler for preflight requests
-app.options('*', cors());
-
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ extended: true }));
+const patientRecordRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist', 'groomer', 'cashier'];
+const clinicalRecordRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian'];
+const appointmentRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist'];
+const financeRoles = ['admin', 'it_developer', 'cashier'];
+const boardingRoles = ['admin', 'it_developer', 'senior_veterinarian', 'veterinarian', 'receptionist', 'groomer'];
 
 function invitationsFile(): string {
   return process.env.AUTH_INVITATIONS_FILE || path.resolve(process.cwd(), 'config', 'auth_invitations.json');
@@ -375,55 +405,66 @@ async function getPostgresFingerprint(): Promise<{ version: string; updatedAt: s
     return { version, normalizedVersion: version, storeUpdatedAt: '', updatedAt: new Date().toISOString() };
   }
 
-  const result = await postgresPool.query<{ table_name: string; row_count: string; last_change: string | null }>(`
-    SELECT table_name, row_count::text, last_change::text
-    FROM (
-      SELECT 'clinic_store' AS table_name, COUNT(*) AS row_count, MAX(updated_at) AS last_change FROM clinic_store
-      UNION ALL SELECT 'owners', COUNT(*), MAX(updated_at) FROM owners
-      UNION ALL SELECT 'pets', COUNT(*), MAX(updated_at) FROM pets
-      UNION ALL SELECT 'visits', COUNT(*), MAX(created_at) FROM visits
-      UNION ALL SELECT 'vaccinations', COUNT(*), MAX(created_at) FROM vaccinations
-      UNION ALL SELECT 'products', COUNT(*), MAX(updated_at) FROM products
-      UNION ALL SELECT 'product_movements', COUNT(*), MAX(created_at) FROM product_movements
-      UNION ALL SELECT 'accounting_documents', COUNT(*), MAX(created_at) FROM accounting_documents
-    ) AS changes
-    ORDER BY table_name
-  `);
-  const signature = JSON.stringify(result.rows);
-  const normalizedRows = result.rows.filter((row) => row.table_name !== 'clinic_store');
-  const normalizedVersion = createHash('sha256').update(JSON.stringify(normalizedRows)).digest('hex');
-  const storeUpdatedAt = result.rows.find((row) => row.table_name === 'clinic_store')?.last_change || '';
-  const updatedAt = result.rows.reduce((latest, row) => {
-    if (!row.last_change) return latest;
-    return row.last_change > latest ? row.last_change : latest;
-  }, '');
-  return {
-    version: createHash('sha256').update(signature).digest('hex'),
-    normalizedVersion,
-    storeUpdatedAt,
-    updatedAt: updatedAt || new Date().toISOString(),
-  };
+  try {
+    const result = await postgresPool.query<{ table_name: string; row_count: string; last_change: string | null }>(`
+      SELECT table_name, row_count::text, last_change::text
+      FROM (
+        SELECT 'clinic_store' AS table_name, COUNT(*) AS row_count, MAX(updated_at) AS last_change FROM clinic_store
+        UNION ALL SELECT 'owners', COUNT(*), MAX(updated_at) FROM owners
+        UNION ALL SELECT 'pets', COUNT(*), MAX(updated_at) FROM pets
+        UNION ALL SELECT 'visits', COUNT(*), MAX(created_at) FROM visits
+        UNION ALL SELECT 'vaccinations', COUNT(*), MAX(created_at) FROM vaccinations
+        UNION ALL SELECT 'products', COUNT(*), MAX(updated_at) FROM products
+        UNION ALL SELECT 'product_movements', COUNT(*), MAX(created_at) FROM product_movements
+        UNION ALL SELECT 'accounting_documents', COUNT(*), MAX(created_at) FROM accounting_documents
+      ) AS changes
+      ORDER BY table_name
+    `);
+    const signature = JSON.stringify(result.rows);
+    const normalizedRows = result.rows.filter((row) => row.table_name !== 'clinic_store');
+    const normalizedVersion = createHash('sha256').update(JSON.stringify(normalizedRows)).digest('hex');
+    const storeUpdatedAt = result.rows.find((row) => row.table_name === 'clinic_store')?.last_change || '';
+    const updatedAt = result.rows.reduce((latest, row) => {
+      if (!row.last_change) return latest;
+      return row.last_change > latest ? row.last_change : latest;
+    }, '');
+    return {
+      version: createHash('sha256').update(signature).digest('hex'),
+      normalizedVersion,
+      storeUpdatedAt,
+      updatedAt: updatedAt || new Date().toISOString(),
+    };
+  } catch (err: any) {
+    console.warn('[POSTGRES] getPostgresFingerprint failed, using local fallback:', err?.message || err);
+    const fallback = JSON.stringify({ counts: arrayKeys.map((key) => [key, Array.isArray(store[key]) ? store[key].length : 0]) });
+    const version = createHash('sha256').update(fallback).digest('hex');
+    return { version, normalizedVersion: version, storeUpdatedAt: '', updatedAt: new Date().toISOString() };
+  }
 }
 
 async function refreshNormalizedStoreFromPostgres(): Promise<void> {
   if (!postgresPool) return;
-  const [owners, pets, visits, vaccinations, products, movements, documents] = await Promise.all([
-    postgresPool.query(`SELECT id, full_name, phone, email, address, national_id FROM owners ORDER BY created_at, id`),
-    postgresPool.query(`SELECT p.id, p.owner_id, p.name, p.species, p.breed, p.gender, p.birth_date_text, p.microchip_number, p.notes, p.is_active, o.full_name AS owner_name, o.phone AS owner_phone FROM pets p LEFT JOIN owners o ON o.id = p.owner_id ORDER BY p.created_at, p.id`),
-    postgresPool.query(`SELECT id, pet_id, visit_date_text, cost, notes, vital_signs, clinical_findings FROM visits ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, pet_id, vaccine_name, administered_date_text, next_due_date_text, price, is_completed FROM vaccinations ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, name, latin_name, barcode, group_code, unit_name, purchase_price, sale_price, stock_quantity, is_active FROM products ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, product_id, product_legacy_code, factor_number, movement_date_text, direction, quantity, unit_price, discount, warehouse_code FROM product_movements ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, document_number, document_date_text, factor_number, debit, credit, comment FROM accounting_documents ORDER BY created_at, id`),
-  ]);
+  try {
+    const [owners, pets, visits, vaccinations, products, movements, documents] = await Promise.all([
+      postgresPool.query(`SELECT id, full_name, phone, email, address, national_id FROM owners ORDER BY created_at, id`),
+      postgresPool.query(`SELECT p.id, p.owner_id, p.name, p.species, p.breed, p.gender, p.birth_date_text, p.microchip_number, p.notes, p.is_active, o.full_name AS owner_name, o.phone AS owner_phone FROM pets p LEFT JOIN owners o ON o.id = p.owner_id ORDER BY p.created_at, p.id`),
+      postgresPool.query(`SELECT id, pet_id, visit_date_text, cost, notes, vital_signs, clinical_findings FROM visits ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, pet_id, vaccine_name, administered_date_text, next_due_date_text, price, is_completed FROM vaccinations ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, name, latin_name, barcode, group_code, unit_name, purchase_price, sale_price, stock_quantity, is_active FROM products ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, product_id, product_legacy_code, factor_number, movement_date_text, direction, quantity, unit_price, discount, warehouse_code FROM product_movements ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, document_number, document_date_text, factor_number, debit, credit, comment FROM accounting_documents ORDER BY created_at, id`),
+    ]);
 
-  store.owners = owners.rows.map((row: any) => ({ id: row.id, fullName: row.full_name, name: row.full_name, phone: row.phone, email: row.email, address: row.address, nationalId: row.national_id }));
-  store.patients = pets.rows.map((row: any) => ({ id: row.id, ownerId: row.owner_id, name: row.name, species: row.species, breed: row.breed, gender: row.gender, birthDate: row.birth_date_text, microchipNumber: row.microchip_number, notes: row.notes, active: row.is_active, ownerName: row.owner_name || '', ownerPhone: row.owner_phone || '' }));
-  store.visits = visits.rows.map((row: any) => ({ id: row.id, petId: row.pet_id, date: row.visit_date_text, cost: row.cost === null ? null : Number(row.cost), notes: row.notes, vitalSigns: row.vital_signs || {}, clinicalFindings: row.clinical_findings || {} }));
-  store.vaccinations = vaccinations.rows.map((row: any) => ({ id: row.id, patientId: row.pet_id, vaccineName: row.vaccine_name, date: row.administered_date_text, nextDueDate: row.next_due_date_text, price: row.price === null ? null : Number(row.price), completed: row.is_completed }));
-  store.products = products.rows.map((row: any) => ({ id: row.id, name: row.name, latinName: row.latin_name, barcode: row.barcode, groupCode: row.group_code, unit: row.unit_name, price: row.purchase_price === null ? null : Number(row.purchase_price), salePrice: row.sale_price === null ? null : Number(row.sale_price), stock: row.stock_quantity === null ? null : Number(row.stock_quantity), active: row.is_active }));
-  store.productMovements = movements.rows.map((row: any) => ({ id: row.id, productId: row.product_id, productLegacyCode: row.product_legacy_code, factorNumber: row.factor_number, date: row.movement_date_text, direction: row.direction, quantity: row.quantity === null ? null : Number(row.quantity), price: row.unit_price === null ? null : Number(row.unit_price), discount: row.discount === null ? null : Number(row.discount), warehouseCode: row.warehouse_code }));
-  store.accountingDocuments = documents.rows.map((row: any) => ({ id: row.id, documentNumber: row.document_number, date: row.document_date_text, factorNumber: row.factor_number, debit: row.debit === null ? null : Number(row.debit), credit: row.credit === null ? null : Number(row.credit), comment: row.comment }));
+    store.owners = owners.rows.map((row: any) => ({ id: row.id, fullName: row.full_name, name: row.full_name, phone: row.phone, email: row.email, address: row.address, nationalId: row.national_id }));
+    store.patients = pets.rows.map((row: any) => ({ id: row.id, ownerId: row.owner_id, name: row.name, species: row.species, breed: row.breed, gender: row.gender, birthDate: row.birth_date_text, microchipNumber: row.microchip_number, notes: row.notes, active: row.is_active, ownerName: row.owner_name || '', ownerPhone: row.owner_phone || '' }));
+    store.visits = visits.rows.map((row: any) => ({ id: row.id, petId: row.pet_id, date: row.visit_date_text, cost: row.cost === null ? null : Number(row.cost), notes: row.notes, vitalSigns: row.vital_signs || {}, clinicalFindings: row.clinical_findings || {} }));
+    store.vaccinations = vaccinations.rows.map((row: any) => ({ id: row.id, patientId: row.pet_id, vaccineName: row.vaccine_name, date: row.administered_date_text, nextDueDate: row.next_due_date_text, price: row.price === null ? null : Number(row.price), completed: row.is_completed }));
+    store.products = products.rows.map((row: any) => ({ id: row.id, name: row.name, latinName: row.latin_name, barcode: row.barcode, groupCode: row.group_code, unit: row.unit_name, price: row.purchase_price === null ? null : Number(row.purchase_price), salePrice: row.sale_price === null ? null : Number(row.sale_price), stock: row.stock_quantity === null ? null : Number(row.stock_quantity), active: row.is_active }));
+    store.productMovements = movements.rows.map((row: any) => ({ id: row.id, productId: row.product_id, productLegacyCode: row.product_legacy_code, factorNumber: row.factor_number, date: row.movement_date_text, direction: row.direction, quantity: row.quantity === null ? null : Number(row.quantity), price: row.unit_price === null ? null : Number(row.unit_price), discount: row.discount === null ? null : Number(row.discount), warehouseCode: row.warehouse_code }));
+    store.accountingDocuments = documents.rows.map((row: any) => ({ id: row.id, documentNumber: row.document_number, date: row.document_date_text, factorNumber: row.factor_number, debit: row.debit === null ? null : Number(row.debit), credit: row.credit === null ? null : Number(row.credit), comment: row.comment }));
+  } catch (err: any) {
+    console.warn('[POSTGRES] refreshNormalizedStoreFromPostgres failed:', err?.message || err);
+  }
 }
 
 // Automatic Timestamped Backup Creation
@@ -482,125 +523,140 @@ function queuePostgresStoreSave(): void {
 async function initializePostgresStore(): Promise<void> {
   if (DATABASE_PROVIDER !== 'postgres' && DATABASE_PROVIDER !== 'postgresql') return;
   if (!DATABASE_URL) {
-    throw new Error('DATABASE_URL is required when DATABASE_PROVIDER=postgres');
+    console.warn('[POSTGRES] DATABASE_URL is not configured. Falling back to persistent local store.');
+    return;
   }
 
-  postgresPool = new Pool({ connectionString: DATABASE_URL, max: 10 });
-  await postgresPool.query(`
-    CREATE TABLE IF NOT EXISTS clinic_store (
-      store_key text PRIMARY KEY,
-      payload jsonb NOT NULL,
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )
-  `);
+  try {
+    const pool = new Pool({ connectionString: DATABASE_URL, max: 10, connectionTimeoutMillis: 3000 });
+    // Quick test query to ensure connection is live
+    await pool.query('SELECT 1');
+    postgresPool = pool;
 
-  const result = await postgresPool.query<{ payload: PersistentClinicStore }>(
-    `SELECT payload FROM clinic_store WHERE store_key = 'default'`
-  );
+    await postgresPool.query(`
+      CREATE TABLE IF NOT EXISTS clinic_store (
+        store_key text PRIMARY KEY,
+        payload jsonb NOT NULL,
+        updated_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
 
-  if (result.rows[0]?.payload) {
-    store = { ...defaultClinicStore, ...result.rows[0].payload };
-    for (const key of arrayKeys) {
-      if (!Array.isArray(store[key])) (store[key] as any[]) = [];
+    const result = await postgresPool.query<{ payload: PersistentClinicStore }>(
+      `SELECT payload FROM clinic_store WHERE store_key = 'default'`
+    );
+
+    if (result.rows[0]?.payload) {
+      store = { ...defaultClinicStore, ...result.rows[0].payload };
+      for (const key of arrayKeys) {
+        if (!Array.isArray(store[key])) (store[key] as any[]) = [];
+      }
+      console.log('[POSTGRES] Loaded clinic store from PostgreSQL.');
+    } else {
+      queuePostgresStoreSave();
+      await postgresWriteChain;
+      console.log('[POSTGRES] Initialized clinic store from the current JSON state.');
     }
-    console.log('[POSTGRES] Loaded clinic store from PostgreSQL.');
-  } else {
-    queuePostgresStoreSave();
-    await postgresWriteChain;
-    console.log('[POSTGRES] Initialized clinic store from the current JSON state.');
-  }
 
-  // The migration importer writes normalized PostgreSQL tables. Hydrate the
-  // API store from those tables so the existing frontend contract can use the
-  // migrated records without requiring a second data model in every route.
-  const [owners, pets, visits, vaccinations, products, movements, documents] = await Promise.all([
-    postgresPool.query(`SELECT id, full_name, phone, email, address, national_id FROM owners ORDER BY created_at, id`),
-    postgresPool.query(`SELECT p.id, p.owner_id, p.name, p.species, p.breed, p.gender, p.birth_date_text, p.microchip_number, p.notes, p.is_active, o.full_name AS owner_name, o.phone AS owner_phone FROM pets p LEFT JOIN owners o ON o.id = p.owner_id ORDER BY p.created_at, p.id`),
-    postgresPool.query(`SELECT id, pet_id, visit_date_text, cost, notes, vital_signs, clinical_findings FROM visits ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, pet_id, vaccine_name, administered_date_text, next_due_date_text, price, is_completed FROM vaccinations ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, name, latin_name, barcode, group_code, unit_name, purchase_price, sale_price, stock_quantity, is_active FROM products ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, product_id, product_legacy_code, factor_number, movement_date_text, direction, quantity, unit_price, discount, warehouse_code FROM product_movements ORDER BY created_at, id`),
-    postgresPool.query(`SELECT id, document_number, document_date_text, factor_number, debit, credit, comment FROM accounting_documents ORDER BY created_at, id`),
-  ]);
+    // The migration importer writes normalized PostgreSQL tables. Hydrate the
+    // API store from those tables so the existing frontend contract can use the
+    // migrated records without requiring a second data model in every route.
+    const [owners, pets, visits, vaccinations, products, movements, documents] = await Promise.all([
+      postgresPool.query(`SELECT id, full_name, phone, email, address, national_id FROM owners ORDER BY created_at, id`),
+      postgresPool.query(`SELECT p.id, p.owner_id, p.name, p.species, p.breed, p.gender, p.birth_date_text, p.microchip_number, p.notes, p.is_active, o.full_name AS owner_name, o.phone AS owner_phone FROM pets p LEFT JOIN owners o ON o.id = p.owner_id ORDER BY p.created_at, p.id`),
+      postgresPool.query(`SELECT id, pet_id, visit_date_text, cost, notes, vital_signs, clinical_findings FROM visits ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, pet_id, vaccine_name, administered_date_text, next_due_date_text, price, is_completed FROM vaccinations ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, name, latin_name, barcode, group_code, unit_name, purchase_price, sale_price, stock_quantity, is_active FROM products ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, product_id, product_legacy_code, factor_number, movement_date_text, direction, quantity, unit_price, discount, warehouse_code FROM product_movements ORDER BY created_at, id`),
+      postgresPool.query(`SELECT id, document_number, document_date_text, factor_number, debit, credit, comment FROM accounting_documents ORDER BY created_at, id`),
+    ]);
 
-  if (owners.rowCount || pets.rowCount || visits.rowCount || vaccinations.rowCount || products.rowCount || movements.rowCount || documents.rowCount) {
-    store.owners = owners.rows.map((row) => ({
-      id: row.id,
-      fullName: row.full_name,
-      name: row.full_name,
-      phone: row.phone,
-      email: row.email,
-      address: row.address,
-      nationalId: row.national_id,
-    }));
-    store.patients = pets.rows.map((row) => ({
-      id: row.id,
-      ownerId: row.owner_id,
-      name: row.name,
-      species: row.species,
-      breed: row.breed,
-      gender: row.gender,
-      birthDate: row.birth_date_text,
-      microchipNumber: row.microchip_number,
-      notes: row.notes,
-      active: row.is_active,
-      ownerName: row.owner_name || '',
-      ownerPhone: row.owner_phone || '',
-    }));
-    store.visits = visits.rows.map((row) => ({
-      id: row.id,
-      petId: row.pet_id,
-      date: row.visit_date_text,
-      cost: row.cost === null ? null : Number(row.cost),
-      notes: row.notes,
-      vitalSigns: row.vital_signs || {},
-      clinicalFindings: row.clinical_findings || {},
-    }));
-    store.vaccinations = vaccinations.rows.map((row) => ({
-      id: row.id,
-      patientId: row.pet_id,
-      vaccineName: row.vaccine_name,
-      date: row.administered_date_text,
-      nextDueDate: row.next_due_date_text,
-      price: row.price === null ? null : Number(row.price),
-      completed: row.is_completed,
-    }));
-    store.products = products.rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      latinName: row.latin_name,
-      barcode: row.barcode,
-      groupCode: row.group_code,
-      unit: row.unit_name,
-      price: row.purchase_price === null ? null : Number(row.purchase_price),
-      salePrice: row.sale_price === null ? null : Number(row.sale_price),
-      stock: row.stock_quantity === null ? null : Number(row.stock_quantity),
-      active: row.is_active,
-    }));
-    store.productMovements = movements.rows.map((row) => ({
-      id: row.id,
-      productId: row.product_id,
-      productLegacyCode: row.product_legacy_code,
-      factorNumber: row.factor_number,
-      date: row.movement_date_text,
-      direction: row.direction,
-      quantity: row.quantity === null ? null : Number(row.quantity),
-      price: row.unit_price === null ? null : Number(row.unit_price),
-      discount: row.discount === null ? null : Number(row.discount),
-      warehouseCode: row.warehouse_code,
-    }));
-    store.accountingDocuments = documents.rows.map((row) => ({
-      id: row.id,
-      documentNumber: row.document_number,
-      date: row.document_date_text,
-      factorNumber: row.factor_number,
-      debit: row.debit === null ? null : Number(row.debit),
-      credit: row.credit === null ? null : Number(row.credit),
-      comment: row.comment,
-    }));
-    queuePostgresStoreSave();
-    await postgresWriteChain;
-    console.log('[POSTGRES] Hydrated API store from normalized migration tables.');
+    if (owners.rowCount || pets.rowCount || visits.rowCount || vaccinations.rowCount || products.rowCount || movements.rowCount || documents.rowCount) {
+      store.owners = owners.rows.map((row) => ({
+        id: row.id,
+        fullName: row.full_name,
+        name: row.full_name,
+        phone: row.phone,
+        email: row.email,
+        address: row.address,
+        nationalId: row.national_id,
+      }));
+      store.patients = pets.rows.map((row) => ({
+        id: row.id,
+        ownerId: row.owner_id,
+        name: row.name,
+        species: row.species,
+        breed: row.breed,
+        gender: row.gender,
+        birthDate: row.birth_date_text,
+        microchipNumber: row.microchip_number,
+        notes: row.notes,
+        active: row.is_active,
+        ownerName: row.owner_name || '',
+        ownerPhone: row.owner_phone || '',
+      }));
+      store.visits = visits.rows.map((row) => ({
+        id: row.id,
+        petId: row.pet_id,
+        date: row.visit_date_text,
+        cost: row.cost === null ? null : Number(row.cost),
+        notes: row.notes,
+        vitalSigns: row.vital_signs || {},
+        clinicalFindings: row.clinical_findings || {},
+      }));
+      store.vaccinations = vaccinations.rows.map((row) => ({
+        id: row.id,
+        patientId: row.pet_id,
+        vaccineName: row.vaccine_name,
+        date: row.administered_date_text,
+        nextDueDate: row.next_due_date_text,
+        price: row.price === null ? null : Number(row.price),
+        completed: row.is_completed,
+      }));
+      store.products = products.rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        latinName: row.latin_name,
+        barcode: row.barcode,
+        groupCode: row.group_code,
+        unit: row.unit_name,
+        price: row.purchase_price === null ? null : Number(row.purchase_price),
+        salePrice: row.sale_price === null ? null : Number(row.sale_price),
+        stock: row.stock_quantity === null ? null : Number(row.stock_quantity),
+        active: row.is_active,
+      }));
+      store.productMovements = movements.rows.map((row) => ({
+        id: row.id,
+        productId: row.product_id,
+        productLegacyCode: row.product_legacy_code,
+        factorNumber: row.factor_number,
+        date: row.movement_date_text,
+        direction: row.direction,
+        quantity: row.quantity === null ? null : Number(row.quantity),
+        price: row.unit_price === null ? null : Number(row.unit_price),
+        discount: row.discount === null ? null : Number(row.discount),
+        warehouseCode: row.warehouse_code,
+      }));
+      store.accountingDocuments = documents.rows.map((row) => ({
+        id: row.id,
+        documentNumber: row.document_number,
+        date: row.document_date_text,
+        factorNumber: row.factor_number,
+        debit: row.debit === null ? null : Number(row.debit),
+        credit: row.credit === null ? null : Number(row.credit),
+        comment: row.comment,
+      }));
+      queuePostgresStoreSave();
+      await postgresWriteChain;
+      console.log('[POSTGRES] Hydrated API store from normalized migration tables.');
+    }
+  } catch (error: any) {
+    console.warn('[POSTGRES] Connection to PostgreSQL failed; falling back to local persistent store:', error?.message || error);
+    if (postgresPool) {
+      try {
+        await postgresPool.end();
+      } catch {}
+      postgresPool = null;
+    }
   }
 }
 
@@ -786,7 +842,7 @@ app.post('/api/system/test-connectivity', (req: Request, res: Response) => {
 
 // Persistent Entity APIs (Fully Atomic & Uniform Response)
 // 1. Patients
-app.get('/api/patients', requirePermission('patients.read'), (req: Request, res: Response) => {
+app.get('/api/patients', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const species = String(req.query.species || '').trim();
   const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
@@ -806,7 +862,7 @@ app.get('/api/patients', requirePermission('patients.read'), (req: Request, res:
   });
 });
 
-app.post('/api/patients', requirePermission('patients.write'), (req: Request, res: Response) => {
+app.post('/api/patients', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const patient = req.body;
   if (!patient || !patient.id || !patient.name) {
     return uniformResponse(res, 400, {
@@ -828,7 +884,7 @@ app.post('/api/patients', requirePermission('patients.write'), (req: Request, re
   });
 });
 
-app.delete('/api/patients/:id', requirePermission('patients.delete'), (req: Request, res: Response) => {
+app.delete('/api/patients/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.patients.length;
   store.patients = store.patients.filter(p => p.id !== id);
@@ -845,7 +901,7 @@ app.delete('/api/patients/:id', requirePermission('patients.delete'), (req: Requ
   });
 });
 
-app.post('/api/patients/sync-all', requirePermission('patients.write'), (req: Request, res: Response) => {
+app.post('/api/patients/sync-all', requireRoles(['admin', 'it_developer']), (req: Request, res: Response) => {
   const { patients } = req.body;
   if (!Array.isArray(patients)) {
     return uniformResponse(res, 400, {
@@ -864,7 +920,7 @@ app.post('/api/patients/sync-all', requirePermission('patients.write'), (req: Re
 });
 
 // 2. Owners
-app.get('/api/owners', requirePermission('owners.read'), (req: Request, res: Response) => {
+app.get('/api/owners', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
   if (query && query.length < 3) {
@@ -881,7 +937,7 @@ app.get('/api/owners', requirePermission('owners.read'), (req: Request, res: Res
   });
 });
 
-app.post('/api/owners', requirePermission('owners.write'), (req: Request, res: Response) => {
+app.post('/api/owners', requireRoles(patientRecordRoles), (req: Request, res: Response) => {
   const owner = req.body;
   const ownerName = owner?.fullName || owner?.name;
   if (!owner || !owner.id || !ownerName) {
@@ -906,7 +962,7 @@ app.post('/api/owners', requirePermission('owners.write'), (req: Request, res: R
   });
 });
 
-app.delete('/api/owners/:id', requirePermission('owners.delete'), (req: Request, res: Response) => {
+app.delete('/api/owners/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.owners.length;
   store.owners = store.owners.filter(o => o.id !== id);
@@ -924,7 +980,7 @@ app.delete('/api/owners/:id', requirePermission('owners.delete'), (req: Request,
 });
 
 // 3. Clinical Visits
-app.get('/api/visits', requirePermission('visits.read'), (req: Request, res: Response) => {
+app.get('/api/visits', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.visits.length,
@@ -932,7 +988,7 @@ app.get('/api/visits', requirePermission('visits.read'), (req: Request, res: Res
   });
 });
 
-app.post('/api/visits', requirePermission('visits.write'), (req: Request, res: Response) => {
+app.post('/api/visits', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const visit = req.body;
   const required = ['id', 'petId', 'date', 'chiefComplaint', 'diagnosis'];
   const missing = required.filter((field) => !visit || !visit[field]);
@@ -956,7 +1012,7 @@ app.post('/api/visits', requirePermission('visits.write'), (req: Request, res: R
   });
 });
 
-app.post('/api/visits/:id/attachments', requirePermission('visits.write'), (req: Request, res: Response) => {
+app.post('/api/visits/:id/attachments', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const attachment = req.body;
   const targetVisit = store.visits.find(v => v.id === id);
@@ -978,7 +1034,7 @@ app.post('/api/visits/:id/attachments', requirePermission('visits.write'), (req:
   });
 });
 
-app.delete('/api/visits/:id', requirePermission('visits.delete'), (req: Request, res: Response) => {
+app.delete('/api/visits/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.visits.length;
   store.visits = store.visits.filter(v => v.id !== id);
@@ -996,7 +1052,7 @@ app.delete('/api/visits/:id', requirePermission('visits.delete'), (req: Request,
 });
 
 // 3.1 Vaccination History (migration-ready storage API)
-app.get('/api/vaccinations', requirePermission('vaccinations.read'), (req: Request, res: Response) => {
+app.get('/api/vaccinations', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const patientId = typeof req.query.patientId === 'string' ? req.query.patientId : undefined;
   const data = patientId ? store.vaccinations.filter(v => v.patientId === patientId) : store.vaccinations;
   return uniformResponse(res, 200, {
@@ -1006,7 +1062,7 @@ app.get('/api/vaccinations', requirePermission('vaccinations.read'), (req: Reque
   });
 });
 
-app.post('/api/vaccinations', requirePermission('vaccinations.write'), (req: Request, res: Response) => {
+app.post('/api/vaccinations', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const vaccination = req.body;
   const required = ['id', 'patientId', 'vaccineName', 'date'];
   const missing = required.filter((field) => !vaccination || !vaccination[field]);
@@ -1045,7 +1101,7 @@ app.get('/api/finance/accounting-documents', (req: Request, res: Response) => {
 });
 
 // 4. Appointments & Queues
-app.get('/api/appointments', requirePermission('appointments.read'), (req: Request, res: Response) => {
+app.get('/api/appointments', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.appointments.length,
@@ -1053,7 +1109,7 @@ app.get('/api/appointments', requirePermission('appointments.read'), (req: Reque
   });
 });
 
-app.post('/api/appointments', requirePermission('appointments.write'), (req: Request, res: Response) => {
+app.post('/api/appointments', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const appt = req.body;
   if (!appt || !appt.id) {
     return uniformResponse(res, 400, {
@@ -1075,7 +1131,7 @@ app.post('/api/appointments', requirePermission('appointments.write'), (req: Req
   });
 });
 
-app.patch('/api/appointments/:id/status', requirePermission('appointments.write'), (req: Request, res: Response) => {
+app.patch('/api/appointments/:id/status', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { status, operatorApprovalStatus, requiresDeposit, depositAmount, depositStatus, depositPaymentLink, depositTransactionRef } = req.body;
   const target = store.appointments.find(a => a.id === id);
@@ -1100,7 +1156,7 @@ app.patch('/api/appointments/:id/status', requirePermission('appointments.write'
   });
 });
 
-app.delete('/api/appointments/:id', requirePermission('appointments.delete'), (req: Request, res: Response) => {
+app.delete('/api/appointments/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian', 'receptionist']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.appointments.length;
   store.appointments = store.appointments.filter(a => a.id !== id);
@@ -1118,7 +1174,7 @@ app.delete('/api/appointments/:id', requirePermission('appointments.delete'), (r
 });
 
 // Clinic Queues
-app.get('/api/queues', requirePermission('queues.read'), (req: Request, res: Response) => {
+app.get('/api/queues', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.queues.length,
@@ -1126,7 +1182,7 @@ app.get('/api/queues', requirePermission('queues.read'), (req: Request, res: Res
   });
 });
 
-app.post('/api/queues', requirePermission('queues.write'), (req: Request, res: Response) => {
+app.post('/api/queues', requireRoles(appointmentRoles), (req: Request, res: Response) => {
   const queue = req.body;
   if (!queue || !queue.id) {
     return uniformResponse(res, 400, {
@@ -1148,7 +1204,7 @@ app.post('/api/queues', requirePermission('queues.write'), (req: Request, res: R
   });
 });
 
-app.delete('/api/queues/:id', requirePermission('queues.delete'), (req: Request, res: Response) => {
+app.delete('/api/queues/:id', requireRoles(['admin', 'it_developer', 'receptionist']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.queues.length;
   store.queues = store.queues.filter(q => q.id !== id);
@@ -1166,7 +1222,7 @@ app.delete('/api/queues/:id', requirePermission('queues.delete'), (req: Request,
 });
 
 // 5. Invoices & Cashier
-app.get('/api/invoices', requirePermission('invoices.read'), (req: Request, res: Response) => {
+app.get('/api/invoices', requireRoles(financeRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.invoices.length,
@@ -1174,7 +1230,7 @@ app.get('/api/invoices', requirePermission('invoices.read'), (req: Request, res:
   });
 });
 
-app.post('/api/invoices', requirePermission('invoices.write'), (req: Request, res: Response) => {
+app.post('/api/invoices', requireRoles(financeRoles), (req: Request, res: Response) => {
   const invoice = req.body;
   if (!invoice || !invoice.id) {
     return uniformResponse(res, 400, {
@@ -1196,7 +1252,7 @@ app.post('/api/invoices', requirePermission('invoices.write'), (req: Request, re
   });
 });
 
-app.patch('/api/invoices/:id/pay', requirePermission('invoices.pay'), (req: Request, res: Response) => {
+app.patch('/api/invoices/:id/pay', requireRoles(financeRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { paymentMethod, notes, cashierName, amount } = req.body;
   const inv = store.invoices.find(i => i.id === id);
@@ -1225,7 +1281,7 @@ app.patch('/api/invoices/:id/pay', requirePermission('invoices.pay'), (req: Requ
   });
 });
 
-app.delete('/api/invoices/:id', requirePermission('invoices.delete'), (req: Request, res: Response) => {
+app.delete('/api/invoices/:id', requireRoles(['admin', 'it_developer']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.invoices.length;
   store.invoices = store.invoices.filter(i => i.id !== id);
@@ -1243,7 +1299,7 @@ app.delete('/api/invoices/:id', requirePermission('invoices.delete'), (req: Requ
 });
 
 // 6. Boarding & Hospitalization
-app.get('/api/boarding', requirePermission('boarding.read'), (req: Request, res: Response) => {
+app.get('/api/boarding', requireRoles(boardingRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.boarding.length,
@@ -1251,7 +1307,7 @@ app.get('/api/boarding', requirePermission('boarding.read'), (req: Request, res:
   });
 });
 
-app.post('/api/boarding', requirePermission('boarding.write'), (req: Request, res: Response) => {
+app.post('/api/boarding', requireRoles(boardingRoles), (req: Request, res: Response) => {
   const record = req.body;
   if (!record || !record.id) {
     return uniformResponse(res, 400, {
@@ -1273,7 +1329,7 @@ app.post('/api/boarding', requirePermission('boarding.write'), (req: Request, re
   });
 });
 
-app.patch('/api/boarding/:id/task', requirePermission('boarding.write'), (req: Request, res: Response) => {
+app.patch('/api/boarding/:id/task', requireRoles(boardingRoles), (req: Request, res: Response) => {
   const { id } = req.params;
   const { taskId, isCompleted, completedBy, completedAt, photoProofUrl, voiceMemoText } = req.body;
   const rec = store.boarding.find(b => b.id === id);
@@ -1310,7 +1366,7 @@ app.patch('/api/boarding/:id/task', requirePermission('boarding.write'), (req: R
   });
 });
 
-app.delete('/api/boarding/:id', requirePermission('boarding.delete'), (req: Request, res: Response) => {
+app.delete('/api/boarding/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.boarding.length;
   store.boarding = store.boarding.filter(b => b.id !== id);
@@ -1583,7 +1639,7 @@ app.delete('/api/petshop/loyalty/:id', (req: Request, res: Response) => {
 
 // 9. Surgery Sessions & Grooming
 // Surgery Sessions
-app.get('/api/surgery/sessions', requirePermission('surgery.read'), (req: Request, res: Response) => {
+app.get('/api/surgery/sessions', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     count: store.surgerySessions.length,
@@ -1591,7 +1647,7 @@ app.get('/api/surgery/sessions', requirePermission('surgery.read'), (req: Reques
   });
 });
 
-app.post('/api/surgery/sessions', requirePermission('surgery.write'), (req: Request, res: Response) => {
+app.post('/api/surgery/sessions', requireRoles(clinicalRecordRoles), (req: Request, res: Response) => {
   const session = req.body;
   if (!session || !session.id) {
     return uniformResponse(res, 400, {
@@ -1613,7 +1669,7 @@ app.post('/api/surgery/sessions', requirePermission('surgery.write'), (req: Requ
   });
 });
 
-app.post('/api/surgery/sessions/batch', requirePermission('surgery.write'), (req: Request, res: Response) => {
+app.post('/api/surgery/sessions/batch', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const sessions = req.body;
   if (!Array.isArray(sessions)) {
     return uniformResponse(res, 400, {
@@ -1630,7 +1686,7 @@ app.post('/api/surgery/sessions/batch', requirePermission('surgery.write'), (req
   });
 });
 
-app.delete('/api/surgery/sessions/:id', requirePermission('surgery.delete'), (req: Request, res: Response) => {
+app.delete('/api/surgery/sessions/:id', requireRoles(['admin', 'it_developer', 'senior_veterinarian']), (req: Request, res: Response) => {
   const { id } = req.params;
   const initialLen = store.surgerySessions.length;
   store.surgerySessions = store.surgerySessions.filter(s => s.id !== id);
@@ -2229,14 +2285,18 @@ app.get('/api/data-version', async (req: Request, res: Response) => {
       await refreshNormalizedStoreFromPostgres();
       lastNormalizedFingerprint = fingerprint.normalizedVersion;
     } else if (postgresPool && fingerprint.storeUpdatedAt !== lastStoreUpdatedAt) {
-      const result = await postgresPool.query<{ payload: PersistentClinicStore }>(
-        `SELECT payload FROM clinic_store WHERE store_key = 'default'`
-      );
-      if (result.rows[0]?.payload) {
-        store = { ...defaultClinicStore, ...result.rows[0].payload };
-        for (const key of arrayKeys) {
-          if (!Array.isArray(store[key])) (store[key] as any[]) = [];
+      try {
+        const result = await postgresPool.query<{ payload: PersistentClinicStore }>(
+          `SELECT payload FROM clinic_store WHERE store_key = 'default'`
+        );
+        if (result.rows[0]?.payload) {
+          store = { ...defaultClinicStore, ...result.rows[0].payload };
+          for (const key of arrayKeys) {
+            if (!Array.isArray(store[key])) (store[key] as any[]) = [];
+          }
         }
+      } catch (poolErr) {
+        console.warn('[POSTGRES] Failed to fetch updated clinic store payload:', poolErr);
       }
     }
     lastPostgresFingerprint = fingerprint.version;
@@ -2247,7 +2307,13 @@ app.get('/api/data-version', async (req: Request, res: Response) => {
       updatedAt: fingerprint.updatedAt,
     });
   } catch (error: any) {
-    return uniformResponse(res, 503, { success: false, error: error?.message || 'نسخهٔ داده‌ها در دسترس نیست.' });
+    const fallback = JSON.stringify({ counts: arrayKeys.map((key) => [key, Array.isArray(store[key]) ? store[key].length : 0]) });
+    const version = createHash('sha256').update(fallback).digest('hex');
+    return uniformResponse(res, 200, {
+      success: true,
+      version,
+      updatedAt: new Date().toISOString(),
+    });
   }
 });
 

@@ -22,10 +22,5 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  },
-  "exclude": [
-    "Raw ver 7",
-    "node_modules",
-    "dist"
-  ]
+  }
 }
