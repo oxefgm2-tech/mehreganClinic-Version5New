@@ -8,7 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Pool } from 'pg';
 import { randomUUID, createHash } from 'crypto';
 import { initialNotifications } from './src/data/mockDatabase';
-import { sessionUser } from './src/auth/session';
+import { sessionUser, createSession, deleteSession, getAllAuthUsers } from './src/auth/session';
 import { requirePermission, requireAuth, requireOwnership } from './src/middleware/auth';
 import { initRBAC } from './src/utils/rbac';
 
@@ -23,28 +23,6 @@ const PORT = Number.parseInt(process.env.PORT || '3000', 10) || 3000;
 // Type definitions
 type AuthUser = { username: string; password: string; role: string; name: string; phone?: string; email?: string };
 type UserInvitation = { token: string; name: string; phone?: string; email?: string; role: string; createdAt: string; createdBy: string; usedAt?: string };
-const authSessions = new Map<string, AuthUser>();
-const authBootstrapToken = process.env.AUTH_BOOTSTRAP_TOKEN || '';
-
-function configuredAuthUsers(): AuthUser[] {
-  try {
-    const configuredFile = process.env.AUTH_USERS_FILE || path.resolve(process.cwd(), 'config', 'auth_users.json');
-    if (fs.existsSync(configuredFile)) {
-      const users = JSON.parse(fs.readFileSync(configuredFile, 'utf-8'));
-      if (Array.isArray(users)) return users;
-    }
-    const raw = process.env.AUTH_USERS_JSON;
-    if (raw) {
-      const users = JSON.parse(raw);
-      if (Array.isArray(users)) return users;
-    }
-  } catch {
-    console.warn('Ignoring invalid AUTH_USERS_JSON.');
-  }
-  return authBootstrapToken
-    ? [{ username: 'admin', password: authBootstrapToken, role: 'admin', name: 'مدیر کلینیک' }]
-    : [];
-}
 
 function isTaskManager(user: AuthUser): boolean {
   return ['admin', 'senior_veterinarian', 'it_developer'].includes(user.role);
@@ -100,15 +78,14 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   const username = String(req.body?.username || '').trim();
   const password = String(req.body?.password || '');
   const normalizedUsername = normalizeIdentity(username);
-  const user = configuredAuthUsers().find((candidate) =>
+  const user = getAllAuthUsers().find((candidate) =>
     (candidate.username === username || candidate.email === username || normalizeIdentity(candidate.phone || '') === normalizedUsername) &&
     candidate.password === password
   );
   if (!user) {
     return res.status(401).json({ success: false, error: 'نام کاربری یا رمز عبور نادرست است.' });
   }
-  const token = randomUUID();
-  authSessions.set(token, user);
+  const token = createSession(user);
   return res.json({
     success: true,
     token,
@@ -117,15 +94,13 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
 });
 
 app.get('/api/auth/me', (req: Request, res: Response) => {
-  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  const user = authSessions.get(token);
+  const user = sessionUser(req);
   if (!user) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
   return res.json({ success: true, user: { id: `user-${user.username}`, username: user.username, email: user.email, phone: user.phone, name: user.name, role: user.role, status: 'active' } });
 });
 
 app.patch('/api/auth/me', (req: Request, res: Response) => {
-  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  const session = token ? authSessions.get(token) : undefined;
+  const session = sessionUser(req);
   if (!session) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
   const updates = req.body || {};
   const name = String(updates.name || session.name).trim();
@@ -147,7 +122,7 @@ app.patch('/api/auth/me', (req: Request, res: Response) => {
 
 app.post('/api/auth/logout', (req: Request, res: Response) => {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (token) authSessions.delete(token);
+  if (token) deleteSession(token);
   return res.json({ success: true });
 });
 
@@ -1881,7 +1856,7 @@ app.get('/api/tasks', (req: Request, res: Response) => {
 app.get('/api/staff', (req: Request, res: Response) => {
   const user = sessionUser(req);
   if (!user || !isTaskManager(user)) return uniformResponse(res, 403, { success: false, error: 'دسترسی فهرست پرسنل مجاز نیست.' });
-  const data = configuredAuthUsers().map(({ username, name, role }) => ({ username, name, role }));
+  const data = getAllAuthUsers().map(({ username, name, role }) => ({ username, name, role }));
   return uniformResponse(res, 200, { success: true, count: data.length, data });
 });
 
@@ -1892,7 +1867,7 @@ app.post('/api/tasks', (req: Request, res: Response) => {
   if (!task?.title || !task?.assigneeUsername) {
     return uniformResponse(res, 400, { success: false, error: 'عنوان و کاربر مسئول الزامی است.' });
   }
-  const assignee = configuredAuthUsers().find((candidate) => candidate.username === String(task.assigneeUsername));
+  const assignee = getAllAuthUsers().find((candidate) => candidate.username === String(task.assigneeUsername));
   if (!assignee) {
     return uniformResponse(res, 400, { success: false, error: 'کاربر مسئول در فهرست حساب‌های فعال وجود ندارد.' });
   }
