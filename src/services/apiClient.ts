@@ -106,7 +106,7 @@ export async function testCentralApiConnection(targetUrl?: string): Promise<{
       return {
         success: true,
         latencyMs: latency,
-        clinicName: data.clinicName || 'کلینیک اختصاصی حیوانات خانگی مهرگان',
+        clinicName: data.clinicName || 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
         message: `ارتباط با سرور مرکزی با موفقیت برقرار شد (تأخیر: ${latency} میلی‌ثانیه).`,
       };
     } else {

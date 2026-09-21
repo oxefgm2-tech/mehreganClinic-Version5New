@@ -1472,7 +1472,7 @@ export const initialPrintTemplates: PrintTemplate[] = [
   <div style="text-align: center; border-bottom: 2px dashed #0f766e; padding-bottom: 16px; margin-bottom: 20px;">
     <div style="font-size: 13px; color: #64748b; font-weight: bold;">جمهوری اسلامی ایران - سازمان نظام دامپزشکی</div>
     <h2 style="color: #0f766e; margin: 6px 0; font-size: 22px;">شناسنامه و کارت سلامت بهداشتی حیوان</h2>
-    <div style="font-size: 14px; font-weight: bold; color: #0284c7;">کلینیک اختصاصی حیوانات خانگی مهرگان</div>
+    <div style="font-size: 14px; font-weight: bold; color: #0284c7;">کلینیک دامپزشکی حیوانات خانگی مهرگان</div>
   </div>
   
   <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
@@ -2286,7 +2286,7 @@ export const initialAIAgentDrafts: AIAgentMarketingDraft[] = [
     ],
     reasoning: 'میلو گربه پرشین موبلند عقیم‌شده است. در فصل ریزش مو، مصرف منظم خمیر مالت ضدگلوله‌مویی (Hairball) ضروری است تا از انسداد گوارشی جلوگیری شود.',
     generatedMessage: `سلام سرکار خانم تهرانی گرامی 🐱✨
-از کلینیک اختصاصی حیوانات خانگی مهرگان در خدمتتان هستیم.
+از کلینیک دامپزشکی حیوانات خانگی مهرگان در خدمتتان هستیم.
 با توجه به تغییر فصل و تراکم پوشش مویی میلو جان (نژاد پرشین)، توصیه تیم بالینی استفاده از خمیر مالت اکسترا جیم‌کت برای سلامت گوارش است.
 غذای خشک رویال کنین استریلایز نیز در انبار پت‌شاپ موجود است. با احتساب سطح VIP شما ۱۲٪ تخفیف مستقیم تقدیم حضورتان می‌شود.`,
     tone: 'scientific',
@@ -2883,15 +2883,15 @@ export const legacySqlDatabaseSchemas: Record<string, LegacySqlDatabaseSchema> =
 // ==========================================
 
 export const initialClinicProfile: ClinicProfileConfig = {
-  clinicName: 'کلینیک اختصاصی حیوانات خانگی مهرگان',
-  tagline: 'مرکز تخصصی جراحی، ارتوپدی، داخلی، پت‌شاپ MDI، دندانپزشکی و گرومینگ مدرن پت',
-  phoneNumbers: ['۰۲۱-۲۲۰۸۹۹۰۰', '۰۲۱-۲۲۰۸۹۹۰۱', '۰۹۱۲۱۱۱۲۲۳۳'],
-  emergencyPhone: '۰۹۱۲۹۹۹۰۰۱۱ (اورژانس شبانه‌روزی ۲۴ ساعته)',
-  address: 'تهران، سعادت‌آباد، میدان کاج، خیابان مروارید، نبش کوچه دهم، پلاک ۱۸، ساختمان تخصصی مهرگان',
-  postalCode: '۱۹۹۸۶-۵۴۳۲۱',
+  clinicName: 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
+  tagline: 'مرکز تخصصی جراحی، ارتوپدی، داخلی، پت‌شاپ، دندانپزشکی و گرومینگ حیوانات خانگی',
+  phoneNumbers: ['03136292278', '03136263124', '03136293353'],
+  emergencyPhone: '09133115509 (اورژانس شبانه‌روزی ۲۴ ساعته)',
+  address: 'اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲',
+  postalCode: '',
   coordinates: {
-    lat: 35.7892,
-    lng: 51.3789,
+    lat: 32.6546,
+    lng: 51.6680,
   },
   workingHours: {
     weekdays: 'شنبه تا چهارشنبه: ۸:۰۰ الی ۲۳:۳۰',
@@ -2899,7 +2899,7 @@ export const initialClinicProfile: ClinicProfileConfig = {
     fridays: 'جمعه‌ها و ایام تعطیل: ۱۰:۰۰ الی ۱۸:۰۰ (اورژانس ۲۴ ساعته)',
   },
   aboutUsText:
-    'کلینیک اختصاصی حیوانات خانگی مهرگان با بهره‌گیری از جراحان برجسته و امکانات فوق پیشرفته تشخیصی، رادیولوژی دیجیتال، بیهوشی استنشاقی گاز ایزوفلوران، بخش اختصاصی بستری و پانسیون VIP، استایلینگ و گرومینگ با وان هیدروتراپی، آماده ارائه برترین خدمات سلامت به همراهان باوفای شماست.',
+    'کلینیک دامپزشکی حیوانات خانگی مهرگان با بهره‌گیری از جراحان برجسته و امکانات فوق پیشرفته تشخیصی، رادیولوژی دیجیتال، بیهوشی استنشاقی گاز ایزوفلوران، بخش اختصاصی بستری و پانسیون VIP، استایلینگ و گرومینگ با وان هیدروتراپی، آماده ارائه برترین خدمات سلامت به همراهان باوفای شماست.',
   logoUrl: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=150&auto=format&fit=crop&q=80',
   bannerPhotoUrl: 'https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=1200&auto=format&fit=crop&q=80',
   doctors: [
@@ -3544,7 +3544,7 @@ export const initialSnappPetTaxiRequests: SnappPetTaxiRequest[] = [
     ownerPhone: '۰۹۱۲۱۱۱۲۲۳۳',
     pickupAddress: 'تهران، شهرک غرب، فاز ۱، خیابان مهستان، مجتمع پاسارگاد، بلوک B',
     pickupCoordinates: { lat: 35.772, lng: 51.365 },
-    destinationAddress: 'سعادت‌آباد، میدان کاج، خ مروارید، پلاک ۱۸، کلینیک اختصاصی حیوانات خانگی مهرگان',
+    destinationAddress: 'اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲، کلینیک دامپزشکی حیوانات خانگی مهرگان',
     isForAnotherPerson: true,
     passengerMobileGivenToSnapp: '۰۹۱۲۱۱۱۲۲۳۳',
     hasPetCarrierBox: true,

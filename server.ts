@@ -320,13 +320,13 @@ const defaultClinicStore: PersistentClinicStore = {
   groomingStyles: [],
   groomingPortfolio: [],
   clinicProfile: {
-    clinicName: 'کلینیک اختصاصی حیوانات خانگی مهرگان',
+    clinicName: 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
     licenseNumber: 'VET-IR-98234',
-    phone: '021-88776655',
-    emergencyPhone: '09121112233',
-    address: 'تهران، خیابان ولیعصر، نرسیده به میدان ونک، بن‌بست مهرگان، پلاک ۴',
-    website: 'https://mehregan-vet.ir',
-    email: 'info@mehregan-vet.ir',
+    phone: '03136292278',
+    emergencyPhone: '09133115509',
+    address: 'اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲',
+    website: 'https://mehreganpetclinic.ir',
+    email: 'info@mehreganpetclinic.ir',
     workingHours: 'همه‌روزه ۹:۰۰ الی ۲۲:۰۰ (بخش اورژانس ۲۴ ساعته)',
     taxNumber: '411234567890',
   },
@@ -2179,7 +2179,7 @@ app.post('/api/database/wipe', (req: Request, res: Response) => {
     success: true,
     message: 'کلیه رکوردهای داده با موفقیت پاکسازی شد. تنها تنظیمات و پروفایل پیکربندی کلینیک حفظ گردید.',
     retainedConfig: {
-      clinicName: store.clinicProfile?.clinicName || 'کلینیک اختصاصی حیوانات خانگی مهرگان',
+      clinicName: store.clinicProfile?.clinicName || 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
       initialized: true,
     },
   });
@@ -2450,7 +2450,7 @@ app.post('/api/dev/database/clear', (req: Request, res: Response) => {
     message: 'کلیه رکوردهای آزمایشی دیتابیس با موفقیت تخلیه شد و فقط پیکربندی کلینیک حفظ گردید (Database Cleared, Config Preserved).',
     timestamp: new Date().toISOString(),
     preservedConfig: {
-      clinicName: store.clinicProfile?.clinicName || 'کلینیک اختصاصی حیوانات خانگی مهرگان',
+      clinicName: store.clinicProfile?.clinicName || 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
       initialized: true,
     },
     wipedTables: [

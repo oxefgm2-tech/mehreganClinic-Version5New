@@ -37,12 +37,12 @@ export const SnappPetTaxiModal: React.FC<SnappPetTaxiModalProps> = ({
   const selectedPet = pets.find((p) => p.id === selectedPetId);
   const selectedOwner = owners.find((o) => o.id === selectedPet?.ownerId);
 
-  const [pickupAddress, setPickupAddress] = useState('تهران، سعادت‌آباد، بلوار شهرداری، خیابان ۱۲، پلاک ۴');
+  const [pickupAddress, setPickupAddress] = useState('اصفهان، خیابان توحید میانی');
   const [destinationAddress, setDestinationAddress] = useState(
-    'سعادت‌آباد، میدان کاج، خیابان مروارید، پلاک ۱۸، کلینیک اختصاصی حیوانات خانگی مهرگان'
+    'اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲، کلینیک دامپزشکی حیوانات خانگی مهرگان'
   );
   const [isForAnotherPerson, setIsForAnotherPerson] = useState(true);
-  const [passengerMobile, setPassengerMobile] = useState(selectedOwner?.phone || '۰۹۱۲۱۱۱۲۲۳۳');
+  const [passengerMobile, setPassengerMobile] = useState(selectedOwner?.phone || '');
   const [hasPetCarrierBox, setHasPetCarrierBox] = useState(true);
   const [accompanyingHuman, setAccompanyingHuman] = useState(true);
   const [snappRideType, setSnappRideType] = useState<'snapp_eco' | 'snapp_plus' | 'snapp_van'>('snapp_plus');

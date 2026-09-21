@@ -112,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-extrabold text-[#2D3A27] text-base leading-none">
-                    کلینیک اختصاصی حیوانات خانگی مهرگان
+                    کلینیک دامپزشکی حیوانات خانگی مهرگان
                   </h1>
                   <span className="text-[10px] font-bold bg-[#E9EFE6] text-[#4A6741] px-2 py-0.5 rounded-full border border-[#D5DDD0]">
                     نسخه جامع کلینیکی

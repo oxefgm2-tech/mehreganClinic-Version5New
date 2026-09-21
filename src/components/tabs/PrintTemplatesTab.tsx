@@ -55,7 +55,7 @@ export const PrintTemplatesTab: React.FC<PrintTemplatesTabProps> = ({
   const getRenderedPreviewHtml = () => {
     if (!selectedPetForPreview) {
       return (htmlEditorContent || '')
-        .replace(/{{clinic_name}}/g, 'کلینیک اختصاصی حیوانات خانگی مهرگان')
+        .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی حیوانات خانگی مهرگان')
         .replace(/{{issue_date}}/g, new Date().toLocaleDateString('fa-IR'))
         .replace(/{{date}}/g, new Date().toLocaleDateString('fa-IR'))
         .replace(/{{vet_name}}/g, 'دامپزشک معتمد کلینیک');
@@ -70,7 +70,7 @@ export const PrintTemplatesTab: React.FC<PrintTemplatesTabProps> = ({
       .replace(/{{microchip}}/g, selectedPetForPreview.microchipNumber || '')
       .replace(/{{owner_name}}/g, selectedPetForPreview.ownerName || '')
       .replace(/{{owner_phone}}/g, selectedPetForPreview.ownerPhone || '')
-      .replace(/{{clinic_name}}/g, 'کلینیک اختصاصی حیوانات خانگی مهرگان')
+      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی حیوانات خانگی مهرگان')
       .replace(/{{issue_date}}/g, new Date().toLocaleDateString('fa-IR'))
       .replace(/{{date}}/g, new Date().toLocaleDateString('fa-IR'))
       .replace(/{{rabies_date}}/g, '۱۴۰۳/۰۵/۰۱')

@@ -105,7 +105,7 @@ export const MedicalRecordsTab: React.FC<MedicalRecordsTabProps> = ({
         platform: 'bale',
         type: 'medical_report',
         title: `گزارش ویزیت بالینی و نسخه: ${visit.petName}`,
-        formattedBodyText: `🐾 **کلینیک دامپزشکی و تخصصی مهرگان** 🐾
+        formattedBodyText: `🐾 **کلینیک دامپزشکی حیوانات خانگی مهرگان** 🐾
 📋 **گزارش ویزیت بالینی و نسخه درمانی**
 👤 **سرپرست:** ${visit.ownerName}
 🐶🐱 **نام پت:** ${visit.petName}
@@ -131,7 +131,7 @@ ${rxText}
 ${attText}
 
 با آرزوی بهبودی کامل و سلامت برای پت دلبندتان 🌸
-📞 پشتیبانی کلینیک: ۰۲۱-۸۸۸۸۸۸۸۸`,
+📞 پشتیبانی کلینیک: 03136292278`,
       },
     });
   };

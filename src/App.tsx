@@ -1133,7 +1133,7 @@ export default function App() {
       .replace(/{{microchip}}/g, pet.microchipNumber)
       .replace(/{{owner_name}}/g, pet.ownerName)
       .replace(/{{owner_phone}}/g, pet.ownerPhone)
-      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی هوشمند مهرگان')
+      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی حیوانات خانگی مهرگان')
       .replace(/{{date}}/g, new Date().toLocaleDateString('fa-IR'))
       .replace(/{{issue_date}}/g, new Date().toLocaleDateString('fa-IR'))
       .replace(/{{rabies_date}}/g, '۱۴۰۳/۰۵/۰۱')
@@ -1162,7 +1162,7 @@ export default function App() {
       .replace(/{{date}}/g, invoice.date)
       .replace(/{{final_total}}/g, `${invoice.finalTotal.toLocaleString('fa-IR')} تومان`)
       .replace(/{{subtotal}}/g, `${invoice.subtotal.toLocaleString('fa-IR')} تومان`)
-      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی هوشمند مهرگان')
+      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی حیوانات خانگی مهرگان')
       .replace(/{{vet_name}}/g, invoice.cashierName || currentUser.name);
 
     setPrintModalData({

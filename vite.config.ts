@@ -14,9 +14,9 @@ export default defineConfig(() => {
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           id: '/',
-          name: 'کلینیک اختصاصی حیوانات خانگی مهرگان',
-          short_name: 'مهرگان وت',
-          description: 'سامانه جامع کلینیک اختصاصی حیوانات خانگی مهرگان، سوابق درمان، جراحی، بستری و نوبت‌دهی',
+          name: 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
+          short_name: 'مهرگان پت کلینیک',
+          description: 'سامانه جامع کلینیک دامپزشکی حیوانات خانگی مهرگان، سوابق درمان، جراحی، بستری و نوبت‌دهی',
           theme_color: '#4A6741',
           background_color: '#F7F8F3',
           display: 'standalone',

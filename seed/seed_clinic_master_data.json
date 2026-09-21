@@ -1,104 +1,50 @@
 {
   "clinic": {
-    "name": "کلینیک دامپزشکی مهرگان",
-    "address": "تهران، خیابان سلامت، پلاک 12",
-    "phone": "+98-21-12345678",
-    "email": "info@mehrgan-vet.example",
+    "name": "کلینیک دامپزشکی حیوانات خانگی مهرگان",
+    "address": "اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲",
+    "phone": "03136292278",
+    "email": "info@mehreganpetclinic.ir",
     "timezone": "Asia/Tehran"
   },
   "staff": [
     {
       "id": "staff-1",
-      "name": "دکتر علی رضایی",
+      "name": "{admin_name}",
       "role": "admin",
-      "email": "ali.rezaei@example.com",
-      "phone": "+98-912-1112222"
+      "email": "{admin_email}",
+      "phone": "{admin_phone}"
     },
     {
       "id": "staff-2",
-      "name": "مینا پوراحمد",
-      "role": "staff",
-      "email": "mina.pour@example.com",
-      "phone": "+98-912-3334444"
+      "name": "{vet_name}",
+      "role": "veterinarian",
+      "email": "{vet_email}",
+      "phone": "{vet_phone}"
     },
     {
       "id": "staff-3",
-      "name": "رضا کریمی",
-      "role": "staff",
-      "email": "reza.karimi@example.com",
-      "phone": "+98-912-5556666"
+      "name": "{receptionist_name}",
+      "role": "receptionist",
+      "email": "{receptionist_email}",
+      "phone": "{receptionist_phone}"
     }
   ],
   "services": [
-    {
-      "id": "svc-1",
-      "name": "ویزیت عمومی",
-      "price": 200000,
-      "description": "ویزیت پایه و مشاوره"
-    },
-    {
-      "id": "svc-2",
-      "name": "واکسیناسیون",
-      "price": 350000,
-      "description": "واکسیناسیون استاندارد حیوانات خانگی"
-    }
+    { "id": "svc-1", "name": "ویزیت و معاینات دوره‌ای", "price": 0, "description": "ویزیت پایه و مشاوره" },
+    { "id": "svc-2", "name": "واکسیناسیون", "price": 0, "description": "واکسیناسیون استاندارد حیوانات خانگی" },
+    { "id": "svc-3", "name": "انگل‌تراپی", "price": 0, "description": "درمان و پیشگیری انگلی" },
+    { "id": "svc-4", "name": "جراحی تخصصی بافت نرم", "price": 0, "description": "جراحی تخصصی نرم‌بافت" },
+    { "id": "svc-5", "name": "ارتوپدی", "price": 0, "description": "جراحی و درمان ارتوپدی" },
+    { "id": "svc-6", "name": "جراحی زیبایی", "price": 0, "description": "جراحی زیبایی و ترمیمی" },
+    { "id": "svc-7", "name": "سونوگرافی", "price": 0, "description": "تصویربرداری سونوگرافی" },
+    { "id": "svc-8", "name": "کاشت میکروچیپ", "price": 0, "description": "کاشت و ثبت میکروچیپ" },
+    { "id": "svc-9", "name": "صدور گواهی سلامت و شناسنامه", "price": 0, "description": "صدور مدارک رسمی" },
+    { "id": "svc-10", "name": "گواهی خروج از کشور", "price": 0, "description": "مدارک خروج از کشور" },
+    { "id": "svc-11", "name": "بستری و پانسیون", "price": 0, "description": "بستری شبانه‌روزی" },
+    { "id": "svc-12", "name": "آرایشگاه و شستشو", "price": 0, "description": "گرومینگ و استایلینگ" },
+    { "id": "svc-13", "name": "پت‌شاپ", "price": 0, "description": "فروشگاه لوازم حیوانات خانگی" }
   ],
-  "pets": [
-    {
-      "id": "pet-1",
-      "name": "بامزی",
-      "owner_id": "owner-1",
-      "breed": "German Shepherd",
-      "appearance_tags": ["black-tan", "medium"],
-      "birth_date": "2021-03-12",
-      "description": "سگ آرام و بازیگوش",
-      "media": [
-        {
-          "id": "media-1",
-          "type": "video",
-          "title": "بازی یک ژرمن شپرد خوشحال با فریزبی",
-          "source": "youtube",
-          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          "tags": ["frisbee","german-shepherd","play"]
-        }
-      ],
-      "soundscapes": [
-        {
-          "id": "sfx-1",
-          "title": "باران آرام + پرنده‌ها",
-          "description": "آمبینت برای آرامش",
-          "file": "pet-1-rain-birds.mp3",
-          "duration_seconds": 300
-        }
-      ]
-    },
-    {
-      "id": "pet-2",
-      "name": "پوفی",
-      "owner_id": "owner-2",
-      "breed": "Persian Cat",
-      "appearance_tags": ["white","long-hair"],
-      "birth_date": "2020-07-01",
-      "description": "گربه اجتماعی و علاقه‌مند به نوازش",
-      "media": [],
-      "soundscapes": []
-    }
-  ],
-  "owners": [
-    {
-      "id": "owner-1",
-      "name": "سارا محمدی",
-      "email": "sara.mohamadi@example.com",
-      "phone": "+98-912-7778888",
-      "address": "تهران، خیابان گل"
-    },
-    {
-      "id": "owner-2",
-      "name": "امیر حسینی",
-      "email": "amir.hosseini@example.com",
-      "phone": "+98-912-9990000",
-      "address": "کرج، بلوار آبان"
-    }
-  ],
+  "pets": [],
+  "owners": [],
   "access_requests": []
 }

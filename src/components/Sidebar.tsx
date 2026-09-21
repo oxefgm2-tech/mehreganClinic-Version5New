@@ -263,7 +263,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
         <div className="mt-1 text-[10px] text-[#D4E0CD]/80">
-          کلینیک اختصاصی حیوانات خانگی مهرگان • VetCloud Pro
+          کلینیک دامپزشکی حیوانات خانگی مهرگان • VetCloud Pro
         </div>
       </div>
     </aside>

@@ -29,19 +29,19 @@ export interface ClinicProfileSettingsModalProps {
 }
 
 const getSafeProfile = (p?: Partial<ClinicProfileConfig> | null): ClinicProfileConfig => ({
-  clinicName: p?.clinicName || 'کلینیک اختصاصی حیوانات خانگی مهرگان',
-  tagline: p?.tagline || 'مرکز تخصصی جراحی، ارتوپدی، داخلی، پت‌شاپ MDI، دندانپزشکی و گرومینگ مدرن پت',
-  phoneNumbers: Array.isArray(p?.phoneNumbers) && p.phoneNumbers.length > 0 ? p.phoneNumbers : ['۰۲۱-۲۲۰۸۹۹۰۰'],
-  emergencyPhone: p?.emergencyPhone || '۰۹۱۲۹۹۹۰۰۱۱ (اورژانس شبانه‌روزی ۲۴ ساعته)',
-  address: p?.address || 'تهران، سعادت‌آباد، میدان کاج، خیابان مروارید، نبش کوچه دهم، پلاک ۱۸، ساختمان تخصصی مهرگان',
-  postalCode: p?.postalCode || '۱۹۹۸۶-۵۴۳۲۱',
-  coordinates: p?.coordinates || { lat: 35.7892, lng: 51.3789 },
+  clinicName: p?.clinicName || 'کلینیک دامپزشکی حیوانات خانگی مهرگان',
+  tagline: p?.tagline || 'مرکز تخصصی جراحی، ارتوپدی، داخلی، پت‌شاپ، دندانپزشکی و گرومینگ حیوانات خانگی',
+  phoneNumbers: Array.isArray(p?.phoneNumbers) && p.phoneNumbers.length > 0 ? p.phoneNumbers : ['03136292278', '03136263124', '03136293353'],
+  emergencyPhone: p?.emergencyPhone || '09133115509 (اورژانس شبانه‌روزی ۲۴ ساعته)',
+  address: p?.address || 'اصفهان، خیابان توحید میانی، حدفاصل مهرداد و شریعتی، کوچه مشکلانی ۲۲',
+  postalCode: p?.postalCode || '',
+  coordinates: p?.coordinates || { lat: 32.6546, lng: 51.6680 },
   workingHours: p?.workingHours || {
     weekdays: 'شنبه تا چهارشنبه: ۸:۰۰ الی ۲۳:۳۰',
     thursdays: 'پنج‌شنبه‌ها: ۸:۰۰ الی ۲۱:۰۰',
     fridays: 'جمعه‌ها و ایام تعطیل: ۱۰:۰۰ الی ۱۸:۰۰ (اورژانس ۲۴ ساعته)',
   },
-  aboutUsText: p?.aboutUsText || 'کلینیک اختصاصی حیوانات خانگی مهرگان با بهره‌گیری از جراحان برجسته و امکانات فوق پیشرفته تشخیصی.',
+  aboutUsText: p?.aboutUsText || 'کلینیک دامپزشکی حیوانات خانگی مهرگان با بهره‌گیری از جراحان برجسته و امکانات فوق پیشرفته تشخیصی.',
   logoUrl: p?.logoUrl || '',
   bannerPhotoUrl: p?.bannerPhotoUrl || '',
   doctors: Array.isArray(p?.doctors) ? p.doctors : [],
@@ -89,7 +89,7 @@ export const ClinicProfileSettingsModal: React.FC<ClinicProfileSettingsModalProp
   const handleAddPhone = () => {
     setFormData({
       ...formData,
-      phoneNumbers: [...(formData.phoneNumbers || []), '۰۲۱-'],
+      phoneNumbers: [...(formData.phoneNumbers || []), '0313'],
     });
   };
 

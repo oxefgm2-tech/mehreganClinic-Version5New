@@ -923,7 +923,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
               <span>هوش مصنوعی بالینی و منشی صوتی آماده خدمت</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              میز کار هوشمند کلینیک اختصاصی حیوانات خانگی مهرگان
+              میز کار هوشمند کلینیک دامپزشکی حیوانات خانگی مهرگان
             </h2>
             <p className="text-xs sm:text-sm text-[#D4E0CD] leading-relaxed">
               ثبت ویزیت، نسخه، واکسیناسیون و خدمات صرفاً با صوت، بدون نیاز به تایپ دستی. رفع ابهام هوشمند با پت‌های حاضر در لابی.
