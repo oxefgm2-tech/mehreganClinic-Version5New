@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 type AuthUser = {
+  id?: string;
   username: string;
   password: string;
   role: string;

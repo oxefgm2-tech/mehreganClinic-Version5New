@@ -789,7 +789,8 @@ app.post('/api/system/test-connectivity', (req: Request, res: Response) => {
 app.get('/api/patients', requirePermission('patients.read'), (req: Request, res: Response) => {
   const query = String(req.query.q || '').trim().toLocaleLowerCase();
   const species = String(req.query.species || '').trim();
-  const limit = Math.min(Math.max(Number(req.query.limit || 0) || 0, 0), 10);
+  const rawLimit = Number(req.query.limit);
+  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 500) : 0;
   if (query && query.length < 3) {
     return uniformResponse(res, 200, { success: true, count: 0, data: [] });
   }
@@ -798,10 +799,11 @@ app.get('/api/patients', requirePermission('patients.read'), (req: Request, res:
     const searchable = `${patient.name || ''} ${patient.breed || ''} ${patient.ownerName || ''} ${patient.ownerPhone || ''} ${patient.microchipNumber || ''}`.toLocaleLowerCase();
     return matchesSpecies && (!query || searchable.includes(query));
   });
-  const data = limit ? filtered.slice(0, limit) : filtered;
+  const data = limit > 0 ? filtered.slice(0, limit) : filtered;
   return uniformResponse(res, 200, {
     success: true,
-    count: filtered.length,
+    count: data.length,
+    totalCount: filtered.length,
     data,
   });
 });

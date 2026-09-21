@@ -296,7 +296,7 @@ export default function App() {
           serverProfile,
           dbStatus,
         ] = await Promise.all([
-          apiClient.getPatients(),
+          apiClient.getPatients('', 50),
           apiClient.getOwners(),
           apiClient.getVisits(),
           apiClient.getVaccinations(),

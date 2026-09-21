@@ -251,7 +251,7 @@ export const apiClient = {
   },
 
   // --- Patients (Pets) ---
-  async getPatients(query = '', limit = 0, species = ''): Promise<Pet[]> {
+  async getPatients(query = '', limit = 50, species = ''): Promise<Pet[]> {
     try {
       const params = new URLSearchParams();
       if (query.trim()) params.set('q', query.trim());
