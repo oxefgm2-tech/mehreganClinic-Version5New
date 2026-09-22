@@ -35,6 +35,7 @@ import { SeniorManagerPanel } from './components/SeniorManagerPanel';
 import { UserProfileModal } from './components/UserProfileModal';
 import { InviteUserModal } from './components/InviteUserModal';
 import { InviteSetupPage } from './components/InviteSetupPage';
+import { ClinicPublicIntro } from './components/ClinicPublicIntro';
 
 // Initial Mock Seed Data
 import {
@@ -131,6 +132,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [isHydrating, setIsHydrating] = useState(false);
   const cacheVersionRef = useRef<string | null>(null);
   const refreshLockRef = useRef<Promise<void> | null>(null);
@@ -1218,6 +1220,9 @@ export default function App() {
 
   if (!isAuthenticated) {
     if (inviteToken) return <InviteSetupPage token={inviteToken} />;
+    if (!showLogin) {
+      return <ClinicPublicIntro profile={clinicProfile} onLogin={() => setShowLogin(true)} />;
+    }
     return (
       <div dir="rtl" className="min-h-screen bg-[#F7F8F3] flex items-center justify-center p-6 text-[#2D3A27]">
         <form onSubmit={handleLogin} className="w-full max-w-md bg-white border border-[#E6E9DF] rounded-3xl shadow-lg p-8 space-y-5">

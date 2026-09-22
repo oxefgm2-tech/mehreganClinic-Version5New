@@ -79,18 +79,9 @@ export default defineConfig(() => {
             },
             {
               urlPattern: /\/api\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'clinic-api-cache',
-                networkTimeoutSeconds: 5,
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
+              // Clinical API responses may contain user/session-specific data.
+              // Never persist them in the shared service-worker cache.
+              handler: 'NetworkOnly',
             },
           ],
         },

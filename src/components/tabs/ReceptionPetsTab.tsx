@@ -183,6 +183,26 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
 
       </div>
 
+      {/* Section Header: Present vs Records */}
+      <div className="flex items-center justify-between">
+        {searchTerm.trim().length >= 3 ? (
+          <h3 className="text-sm font-black text-[#2D3A27] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#4A6741]"></span>
+            نتایج جستجوی پرونده‌ها
+            <span className="text-[11px] font-bold text-[#5C7457] bg-[#F7F8F3] border border-[#E6E9DF] px-2 py-0.5 rounded-full">{filteredPets.length} مورد</span>
+            <span className="text-[11px] font-medium text-[#5C7457]">— بج «در انتظار/در معاینه» = حاضر در کلینیک</span>
+          </h3>
+        ) : (
+          <h3 className="text-sm font-black text-[#2D3A27] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            بیماران حاضر در کلینیک
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{filteredPets.length} حاضر</span>
+            <span className="text-[11px] font-medium text-[#5C7457]">— فقط waiting / in_exam</span>
+          </h3>
+        )}
+        <span className="text-[11px] text-[#5C7457]">پرونده‌های کامل در تب سوابق پزشکی</span>
+      </div>
+
       {/* Pet Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredPets.map((pet) => {

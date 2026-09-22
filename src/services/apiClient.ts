@@ -52,6 +52,17 @@ export function apiUrl(endpoint: string): string {
   return base ? `${base}${cleanEndpoint}` : cleanEndpoint;
 }
 
+/** Parse JSON responses defensively so proxy/HTML error pages do not mask the real status. */
+export async function safeJson<T = unknown>(res: Response, fallback: T): Promise<T> {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.toLowerCase().includes('application/json')) return fallback;
+  try {
+    return await res.json() as T;
+  } catch {
+    return fallback;
+  }
+}
+
 function getETagKey(endpoint: string): string {
   return `${STORAGE_KEY_ETAG_PREFIX}${endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;
 }
@@ -102,7 +113,7 @@ export async function testCentralApiConnection(targetUrl?: string): Promise<{
     const res = await clinicFetch(testUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
-      const data = await res.json();
+      const data = await safeJson<{ clinicName?: string }>(res, {});
       return {
         success: true,
         latencyMs: latency,

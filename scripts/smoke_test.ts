@@ -2,10 +2,11 @@
  * Comprehensive Backend Smoke Tests
  * Validates real disk persistence and uniform API contracts for all veterinary modules.
  */
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = (process.env.SMOKE_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const STORE_PATH = path.resolve(process.env.DATA_DIR || path.join(process.cwd(), 'data'), 'clinic_store.json');
 
 interface TestResult {
@@ -17,6 +18,7 @@ interface TestResult {
 }
 
 const results: TestResult[] = [];
+let authToken = '';
 
 async function runTest(suite: string, name: string, fn: () => Promise<void>) {
   const start = Date.now();
@@ -38,11 +40,24 @@ async function request(endpoint: string, options: RequestInit = {}) {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...(options.headers || {}),
     },
   });
   const data = await res.json().catch(() => null);
   return { status: res.status, ok: res.ok, data };
+}
+
+async function assertIsolatedTarget() {
+  if (process.env.SMOKE_ALLOW_SHARED_TARGET === 'true') return;
+  const status = await request('/api/database/status');
+  const provider = String(status.data?.provider || '').toLowerCase();
+  const storageFile = String(status.data?.storageFile || '').toLowerCase();
+  const projectData = path.resolve(process.cwd(), 'data').toLowerCase();
+  const isSharedStorage = storageFile.startsWith(projectData);
+  if (!status.ok || provider === 'postgres' || provider === 'postgresql' || isSharedStorage) {
+    throw new Error('Unsafe smoke target refused. Start the server with DATABASE_PROVIDER=json and an isolated DATA_DIR, or explicitly set SMOKE_ALLOW_SHARED_TARGET=true after review.');
+  }
 }
 
 function verifyDiskStore(predicate: (store: any) => boolean, msg: string) {
@@ -62,6 +77,24 @@ async function runSmokeTests() {
   console.log(`Target: ${BASE_URL}`);
   console.log(`Disk Storage: ${STORE_PATH}`);
   console.log('======================================================\n');
+
+  await assertIsolatedTarget();
+
+  await runTest('Authentication', 'POST /api/auth/login creates a smoke-test session', async () => {
+    const username = process.env.SMOKE_USERNAME || 'admin';
+    const password = process.env.SMOKE_PASSWORD || process.env.AUTH_BOOTSTRAP_TOKEN || '';
+    if (!password) {
+      throw new Error('Set SMOKE_PASSWORD or AUTH_BOOTSTRAP_TOKEN before running protected API smoke tests.');
+    }
+    const login = await request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    if (!login.ok || !login.data?.success || typeof login.data?.token !== 'string') {
+      throw new Error(`Smoke login failed with HTTP ${login.status}. Check SMOKE_USERNAME/SMOKE_PASSWORD.`);
+    }
+    authToken = login.data.token;
+  });
 
   // 1. Health & Database Status
   await runTest('System', 'GET /api/health returns ok and timestamp', async () => {
@@ -382,6 +415,14 @@ async function runSmokeTests() {
     await request(`/api/surgery/sessions/${testSurgeryId}`, { method: 'DELETE' });
 
     verifyDiskStore(s => !s.patients.some((p: any) => p.id === testPatientId), 'Patient cleanup not reflected on disk');
+  });
+
+  await runTest('Authentication', 'POST /api/auth/logout invalidates the smoke-test session', async () => {
+    const logout = await request('/api/auth/logout', { method: 'POST' });
+    if (!logout.ok || !logout.data?.success) {
+      throw new Error(`Smoke logout failed with HTTP ${logout.status}.`);
+    }
+    authToken = '';
   });
 
   // Summary
